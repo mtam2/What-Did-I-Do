@@ -1173,21 +1173,24 @@ mainEl.addEventListener("click", (e) => {
 mainEl.addEventListener("submit", (e) => {
   if (e.target.id !== "quick-add") return;
   e.preventDefault();
-  const input = document.getElementById("quick-title");
+  // Every view keeps its last render in the DOM (just hidden), so ids like
+  // quick-title exist once per view. Look inside the submitted form.
+  const form = e.target;
+  const input = form.querySelector("#quick-title");
   const title = input.value.trim();
   if (!title) {
     input.focus();
     return;
   }
   if (view === "today") {
-    const listId = Number(document.getElementById("quick-list").value) || INBOX_ID;
+    const listId = Number(form.querySelector("#quick-list").value) || INBOX_ID;
     selectedList = listId;
     addTask(title, viewDay, listId);
   } else {
-    const due = document.getElementById("quick-due").value || null;
+    const due = form.querySelector("#quick-due").value || null;
     addTask(title, due, selectedList);
   }
-  const again = document.getElementById("quick-title");
+  const again = document.querySelector(`#view-${view} #quick-title`);
   if (again) again.focus();
 });
 
