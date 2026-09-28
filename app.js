@@ -963,7 +963,10 @@ function renderDaySummary(key) {
   const parts = [];
   if (due.length) parts.push(`${done} of ${due.length} done`);
   if (e && e.mood !== null) parts.push(`mood ${MOODS[e.mood].label}`);
-  if (e && e.text.trim()) parts.push(`${e.text.trim().split(/\s+/).length} words`);
+  if (e && e.text.trim()) {
+    const words = e.text.trim().split(/\s+/).length;
+    parts.push(`${words} word${words === 1 ? "" : "s"}`);
+  }
   const streak = currentStreak();
   if (streak) parts.push(`${streak}-day streak`);
   el.textContent = parts.join(" · ");
