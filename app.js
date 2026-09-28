@@ -915,7 +915,7 @@ function renderToday() {
     ${overdueHtml}
 
     <div class="block">
-      <div class="block-head"><h2>Tasks</h2><span class="count">${done.length} of ${due.length} done</span></div>
+      <div class="block-head"><h2>Tasks</h2>${due.length ? `<span class="count">${done.length} of ${due.length} done</span>` : ""}</div>
       ${emptyTasks}
       <ul class="task-list">${open.map((t) => taskRow(t)).join("")}${done.map((t) => taskRow(t)).join("")}</ul>
       <form class="quick-add" id="quick-add">
