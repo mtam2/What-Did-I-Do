@@ -909,7 +909,7 @@ function renderToday() {
       <ul class="task-list">${open.map((t) => taskRow(t)).join("")}${done.map((t) => taskRow(t)).join("")}</ul>
       <form class="quick-add" id="quick-add">
         <input type="text" id="quick-title" placeholder="Add a task for ${isToday ? "today" : "this day"}…" maxlength="200" autocomplete="off" />
-        <select id="quick-list" aria-label="List">${listOptions}</select>
+        ${state.lists.length > 1 ? `<select id="quick-list" aria-label="List">${listOptions}</select>` : ""}
         <button type="submit" class="primary" aria-label="Add">+</button>
       </form>
       ${unscheduledHtml}
@@ -1216,7 +1216,8 @@ mainEl.addEventListener("submit", (e) => {
     return;
   }
   if (view === "today") {
-    const listId = Number(form.querySelector("#quick-list").value) || INBOX_ID;
+    const picker = form.querySelector("#quick-list"); // absent while Inbox is the only list
+    const listId = (picker && Number(picker.value)) || INBOX_ID;
     selectedList = listId;
     addTask(title, viewDay, listId);
   } else {

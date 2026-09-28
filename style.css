@@ -1442,17 +1442,24 @@ footer a {
   .day-name {
     font-size: 1.2rem;
   }
+  /* Title and "+" stay side by side; the list or date picker drops to a
+     compact second row. */
   .quick-add {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   .quick-add input[type="text"] {
-    flex: 1 1 100%;
     font-size: 1rem;
   }
   .quick-add select,
   .quick-add input[type="date"] {
-    flex: 1 1 auto;
-    max-width: none;
+    order: 1;
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 40px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 0.9rem;
   }
   .mood-btn .mood-label {
     display: none;
