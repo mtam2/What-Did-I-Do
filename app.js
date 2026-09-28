@@ -206,12 +206,27 @@ function saveState() {
 }
 
 // Another tab wrote newer state. Adopt it so this tab's next save cannot
-// overwrite it with a stale snapshot.
+// overwrite it with a stale snapshot, but carry over journal text still
+// waiting on its debounce, and keep the caret if it's being typed into.
 window.addEventListener("storage", (e) => {
   if (e.key !== null && e.key !== STORAGE_KEY) return;
+  const pending = textSaveTimer ? { key: textSaveKey, entry: state.entries[textSaveKey] } : null;
+  const field = document.activeElement && document.activeElement.id === "entry-text" ? document.activeElement : null;
+  const caret = field && [field.selectionStart, field.selectionEnd];
   state = loadState();
+  if (pending && pending.entry) {
+    const entry = ensureEntry(pending.key);
+    entry.text = pending.entry.text;
+    entry.updated = pending.entry.updated;
+    flushEntryText();
+  }
   applyTheme();
   render();
+  const again = field && document.getElementById("entry-text");
+  if (again) {
+    again.focus();
+    again.setSelectionRange(caret[0], caret[1]);
+  }
 });
 
 function newId() {
@@ -649,13 +664,16 @@ function setMood(key, idx) {
 }
 
 let textSaveTimer = null;
+let textSaveKey = "";
 
 function setEntryText(key, text) {
+  textSaveKey = key;
   const e = ensureEntry(key);
   e.text = text;
   e.updated = Date.now();
   clearTimeout(textSaveTimer);
   textSaveTimer = setTimeout(() => {
+    textSaveTimer = null;
     pruneEntry(key);
     saveState();
     renderDaySummary(key);
