@@ -20,9 +20,11 @@
   --bg: #f5f1e8;
   --text: #222;
   --text-muted: #4a4640;
+  /* The lightest text still needs 4.5:1 on --surface-2, which leaves no
+     room for a paler tier: faintest and placeholder match faint. */
   --text-faint: #6e6a62;
-  --text-faintest: #948f84;
-  --text-placeholder: #b6b1a4;
+  --text-faintest: #6e6a62;
+  --text-placeholder: #6e6a62;
   --surface: #fffdf6;
   --surface-2: #f0ebdd;
   --surface-raised: #fffdf6;
@@ -54,9 +56,9 @@ body.dark {
   --bg: #1c1a18;
   --text: #ece6da;
   --text-muted: #c4bcae;
-  --text-faint: #9c9486;
-  --text-faintest: #766f64;
-  --text-placeholder: #5e584f;
+  --text-faint: #a1998b;
+  --text-faintest: #a1998b;
+  --text-placeholder: #a1998b;
   --surface: #292623;
   --surface-2: #33302c;
   --surface-raised: #3d3934;
