@@ -1356,7 +1356,7 @@ for (const name of ["today", "tasks", "journal", "calendar", "stats"]) {
   });
 }
 
-// The utility buttons collapse behind a "more" toggle on narrow screens.
+// The utility buttons live behind the "more" toggle.
 const btnMore = document.getElementById("btn-more");
 const headerEl = document.querySelector(".header");
 function setToolsOpen(open) {

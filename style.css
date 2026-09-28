@@ -301,15 +301,19 @@ body.dark img.mood-face {
 }
 
 /* Header */
+/* Title and the "more" menu share the top row; the nav gets its own row
+   below (and becomes the bottom tab bar on phones). */
 .header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
 .header h1 {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1.6rem;
   font-weight: 900;
   letter-spacing: -0.01em;
@@ -328,17 +332,14 @@ body.dark img.mood-face {
   font-size: 26px;
   line-height: 36px;
 }
-.nav,
-.header-tools {
+.nav {
+  order: 1;
+  flex: 1 1 100%;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
-.nav {
-  margin-left: auto;
-}
-.nav button,
-.header-tools button {
+.nav button {
   font-size: 0.875rem;
   padding: 6px 12px;
   min-height: 38px;
@@ -369,7 +370,11 @@ body.dark .nav img.nav-icon {
   font-weight: 800;
 }
 .btn-more {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
   width: 44px;
   min-height: 44px;
   padding: 0;
@@ -377,6 +382,35 @@ body.dark .nav img.nav-icon {
   line-height: 1;
   border-radius: 14px;
   background: var(--surface);
+}
+.header-tools {
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  z-index: 20;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px var(--shadow);
+  padding: 6px;
+  min-width: 170px;
+}
+.header.tools-open .header-tools {
+  display: flex;
+}
+.header-tools button {
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  min-height: 44px;
+  font-size: 1rem;
+  color: var(--text);
+}
+body.fullscreen .nav {
+  order: 0;
+  flex: 0 1 auto;
 }
 body.fullscreen .header h1,
 body.fullscreen .header-tools #btn-export,
@@ -1343,46 +1377,11 @@ footer a {
     min-height: 44px;
   }
   .header {
-    position: relative;
     flex-wrap: nowrap;
     margin-bottom: 14px;
   }
   .header h1 {
     font-size: 1.3rem;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .btn-more {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .header-tools {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    z-index: 20;
-    flex-direction: column;
-    gap: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px var(--shadow);
-    padding: 6px;
-    min-width: 170px;
-  }
-  .header.tools-open .header-tools {
-    display: flex;
-  }
-  .header-tools button {
-    border: none;
-    border-radius: 8px;
-    text-align: left;
-    min-height: 44px;
-    font-size: 1rem;
-    color: var(--text);
   }
   .nav {
     position: fixed;
