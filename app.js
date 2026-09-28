@@ -188,7 +188,8 @@ function validTask(t) {
 }
 
 function validEntry(e) {
-  if (!e || typeof e !== "object") return false;
+  // An array would pass the object check but drop every field on save.
+  if (!e || typeof e !== "object" || Array.isArray(e)) return false;
   if (typeof e.text !== "string") e.text = "";
   if (!Number.isInteger(e.mood) || e.mood < 0 || e.mood >= MOODS.length) e.mood = null;
   if (!Array.isArray(e.stickers)) e.stickers = [];
