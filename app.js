@@ -198,11 +198,17 @@ function validEntry(e) {
 }
 
 function saveState() {
+  let failed = false;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     console.warn("Failed to save state:", e);
+    failed = true;
   }
+  // Edits stay on screen either way, so a failed save must be loud: the
+  // banner stays up until a save succeeds, and export still works from
+  // memory.
+  document.getElementById("save-error").hidden = !failed;
 }
 
 // Another tab wrote newer state. Adopt it so this tab's next save cannot
@@ -1616,7 +1622,7 @@ function copyExportString() {
   done(legacyCopy());
 }
 
-document.getElementById("btn-export").addEventListener("click", async () => {
+async function openExport() {
   dataTitle.textContent = "Export";
   dataHint.textContent = "Copy this string, then paste it into the import box on your other browser or machine.";
   dataText.readOnly = true;
@@ -1627,7 +1633,9 @@ document.getElementById("btn-export").addEventListener("click", async () => {
   dataText.value = await serializeState();
   dataText.focus();
   dataText.select();
-});
+}
+document.getElementById("btn-export").addEventListener("click", openExport);
+document.getElementById("btn-save-error-export").addEventListener("click", openExport);
 
 document.getElementById("btn-import").addEventListener("click", () => {
   dataTitle.textContent = "Import";

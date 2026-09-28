@@ -280,6 +280,26 @@ body.dark img.mood-face {
   padding: 2px;
 }
 
+/* Save failure banner */
+.save-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 2px solid var(--danger);
+  border-radius: 14px;
+  background: var(--danger-faint);
+  color: var(--text);
+}
+.save-error[hidden] {
+  display: none;
+}
+.save-error p {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Header */
 .header {
   display: flex;
