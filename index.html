@@ -1,0 +1,155 @@
+<!--
+  What Did I Do?
+  Copyright (C) 2026 Maxim Tam
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <https://www.gnu.org/licenses/>.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5f1e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>What Did I Do?</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="header">
+      <h1><a href="#" id="link-home"><span id="header-mascot"></span>What Did I Do?</a></h1>
+      <nav class="nav" aria-label="Main">
+        <button id="btn-view-today" title="Today's tasks and journal">today</button>
+        <button id="btn-view-tasks" title="Every list, every task">tasks</button>
+        <button id="btn-view-journal" title="Past entries">journal</button>
+        <button id="btn-view-calendar" title="The month at a glance">calendar</button>
+        <button id="btn-view-stats" title="Streaks and history">stats</button>
+      </nav>
+      <button id="btn-more" class="btn-more" aria-label="More" aria-expanded="false" aria-controls="header-tools">&#8943;</button>
+      <div class="header-tools" id="header-tools">
+        <button id="btn-export" title="Show a copy-pasteable string of your data">export</button>
+        <button id="btn-import" title="Paste an exported string to merge it in">import</button>
+        <button id="btn-settings" title="Theme, week start, reminders, storage">settings</button>
+        <button id="btn-fullscreen" title="Toggle fullscreen">fullscreen</button>
+        <button id="btn-dark-mode" title="Toggle dark mode">dark</button>
+      </div>
+    </div>
+
+    <main>
+      <section id="view-today" class="view"></section>
+      <section id="view-tasks" class="view" hidden></section>
+      <section id="view-journal" class="view" hidden></section>
+      <section id="view-calendar" class="view" hidden></section>
+      <section id="view-stats" class="view" hidden></section>
+    </main>
+
+    <!-- Task detail -->
+    <dialog id="task-dialog" class="form-dialog">
+      <form method="dialog" id="task-form">
+        <h2 id="task-dialog-title">Task</h2>
+        <label>Title<input type="text" id="task-title" required maxlength="200" autocomplete="off" /></label>
+        <label>Notes<textarea id="task-notes" rows="3" maxlength="4000"></textarea></label>
+        <div class="form-row">
+          <label>Due<input type="date" id="task-due" /></label>
+          <label>Remind at<input type="time" id="task-reminder" /></label>
+        </div>
+        <label>List<select id="task-list"></select></label>
+        <div class="dialog-actions">
+          <button type="button" id="btn-task-delete" class="danger-link">delete</button>
+          <span class="spacer"></span>
+          <button type="button" id="btn-task-cancel">cancel</button>
+          <button type="submit" class="primary" id="btn-task-save">save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- List detail -->
+    <dialog id="list-dialog" class="form-dialog">
+      <form method="dialog" id="list-form">
+        <h2 id="list-dialog-title">List</h2>
+        <label>Name<input type="text" id="list-name" required maxlength="60" autocomplete="off" /></label>
+        <div class="field-label">Icon</div>
+        <div id="list-icons" class="icon-grid" role="radiogroup" aria-label="Icon"></div>
+        <div class="field-label">Color</div>
+        <div id="list-colors" class="color-row" role="radiogroup" aria-label="Color"></div>
+        <div class="dialog-actions">
+          <button type="button" id="btn-list-delete" class="danger-link">delete</button>
+          <span class="spacer"></span>
+          <button type="button" id="btn-list-cancel">cancel</button>
+          <button type="submit" class="primary" id="btn-list-save">save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Settings -->
+    <dialog id="settings-dialog" class="form-dialog">
+      <h2>Settings</h2>
+      <label>Theme
+        <select id="set-theme">
+          <option value="system">follow system</option>
+          <option value="light">light</option>
+          <option value="dark">dark</option>
+        </select>
+      </label>
+      <label>Mascot
+        <select id="set-pack">
+          <option value="owl">owl</option>
+          <option value="duck">duck</option>
+          <option value="cat">cat</option>
+        </select>
+      </label>
+      <label>Week starts on
+        <select id="set-week-start">
+          <option value="1">Monday</option>
+          <option value="0">Sunday</option>
+        </select>
+      </label>
+      <label>Journal reminder<input type="time" id="set-journal-reminder" /></label>
+      <p class="hint" id="set-reminder-hint">While this page is open in a tab, the title shows "(!)" once the time passes and today has no entry, and a notification fires once if you allow it. It cannot wake a closed browser.</p>
+      <p class="hint" id="set-storage"></p>
+      <div class="settings-danger">
+        <button type="button" id="btn-clear-completed">clear completed tasks older than 90 days</button>
+        <button type="button" id="btn-delete-all" class="danger-link">delete everything</button>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-settings-close" class="primary">done</button>
+      </div>
+    </dialog>
+
+    <!-- Export / import -->
+    <dialog id="data-dialog">
+      <h2 id="data-dialog-title">Export</h2>
+      <p id="data-dialog-hint"></p>
+      <textarea
+        id="data-text"
+        spellcheck="false"
+        autocapitalize="off"
+        autocomplete="off"
+        autocorrect="off"
+      ></textarea>
+      <div class="dialog-actions">
+        <button id="btn-data-close">close</button>
+        <button id="btn-data-primary">copy</button>
+      </div>
+    </dialog>
+
+    <footer>
+      <a href="https://github.com/maximtam/What-Did-I-Do">GitHub</a>
+      <span>What Did I Do? &copy; 2026 Maxim Tam &middot; GPLv3</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
