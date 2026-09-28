@@ -745,8 +745,10 @@ body.dark .task-tile img.icon {
   background: color-mix(in srgb, var(--mood) 22%, var(--surface));
   transform: translateY(-2px);
 }
+/* The mood color marks the border and fill; on the tinted fill it can't
+   carry small text, so the label keeps the body color. */
 .mood-btn.picked .mood-label {
-  color: var(--mood);
+  color: var(--text);
   font-weight: 600;
 }
 .mood-btn img.mood-face,
