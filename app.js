@@ -210,6 +210,7 @@ function saveState() {
   // banner stays up until a save succeeds, and export still works from
   // memory.
   document.getElementById("save-error").hidden = !failed;
+  return !failed;
 }
 
 // Another tab wrote newer state. Adopt it so this tab's next save cannot
@@ -672,9 +673,18 @@ function setMood(key, idx) {
 
 let textSaveTimer = null;
 let textSaveKey = "";
+let textSavedKey = ""; // the day whose typed text was last saved successfully
+
+// Journal text saves quietly after a pause in typing, so say when it has.
+function showEntryStatus() {
+  const el = document.getElementById("entry-status");
+  if (el) el.textContent = textSavedKey === viewDay ? "Saved in this browser" : "";
+}
 
 function setEntryText(key, text) {
   textSaveKey = key;
+  textSavedKey = "";
+  showEntryStatus();
   const e = ensureEntry(key);
   e.text = text;
   e.updated = Date.now();
@@ -682,7 +692,8 @@ function setEntryText(key, text) {
   textSaveTimer = setTimeout(() => {
     textSaveTimer = null;
     pruneEntry(key);
-    saveState();
+    if (saveState()) textSavedKey = key;
+    showEntryStatus();
     renderDaySummary(key);
     updateTitle();
   }, 400);
@@ -924,6 +935,7 @@ function renderToday() {
       <div class="sticker-row">
         ${stickerRow}
         <button class="sticker-add${stickerPickerOpen ? " open" : ""}" data-action="sticker-picker" aria-expanded="${stickerPickerOpen}" title="Add a sticker">${stickerPickerOpen ? "done" : "+ sticker"}</button>
+        <span class="entry-status" id="entry-status" role="status"></span>
       </div>
       ${stickerPicker}
     </div>
@@ -931,6 +943,7 @@ function renderToday() {
     <p class="day-summary" id="day-summary"></p>
   `;
   renderDaySummary(key);
+  showEntryStatus();
   autoGrow(document.getElementById("entry-text"));
 }
 

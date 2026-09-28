@@ -770,6 +770,11 @@ body.dark .task-tile img.icon {
   border-color: transparent;
   font-weight: 600;
 }
+.entry-status {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}
 .sticker-row {
   display: flex;
   flex-wrap: wrap;
