@@ -1124,17 +1124,20 @@ function renderHeatmap() {
 function renderStats() {
   const cur = currentStreak();
   const best = longestStreak();
-  const monthStart = dayKey(startOfMonth(Date.now()));
+  const now = new Date();
+  const monthStart = dayKey(startOfMonth(now.getTime()));
+  const nextMonthStart = dayKey(new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime());
+  const inMonth = (k) => k >= monthStart && k < nextMonthStart;
   const doneMap = completedByDay();
   let doneThisMonth = 0;
-  for (const k of Object.keys(doneMap)) if (k >= monthStart) doneThisMonth += doneMap[k];
-  const entriesThisMonth = Object.keys(state.entries).filter((k) => k >= monthStart && entryHasContent(state.entries[k])).length;
+  for (const k of Object.keys(doneMap)) if (inMonth(k)) doneThisMonth += doneMap[k];
+  const entriesThisMonth = Object.keys(state.entries).filter((k) => inMonth(k) && entryHasContent(state.entries[k])).length;
   const totalDone = state.tasks.filter((t) => t.done).length;
   const totalEntries = Object.keys(state.entries).filter((k) => entryHasContent(state.entries[k])).length;
   const moodCounts = MOODS.map(() => 0);
   for (const k of Object.keys(state.entries)) {
     const e = state.entries[k];
-    if (k >= monthStart && e.mood !== null) moodCounts[e.mood]++;
+    if (inMonth(k) && e.mood !== null) moodCounts[e.mood]++;
   }
   const moodTotal = moodCounts.reduce((a, b) => a + b, 0);
 
