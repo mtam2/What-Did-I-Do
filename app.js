@@ -210,6 +210,10 @@ function saveState() {
   // banner stays up until a save succeeds, and export still works from
   // memory.
   document.getElementById("save-error").hidden = !failed;
+  if (failed) {
+    textSavedKey = "";
+    showEntryStatus();
+  }
   return !failed;
 }
 
@@ -667,18 +671,25 @@ function setMood(key, idx) {
   e.mood = e.mood === idx ? null : idx;
   e.updated = Date.now();
   pruneEntry(key);
-  saveState();
+  saveJournal(key);
   render();
 }
 
 let textSaveTimer = null;
 let textSaveKey = "";
-let textSavedKey = ""; // the day whose typed text was last saved successfully
+let textSavedKey = ""; // the day whose journal was last saved; any failed save clears it
 
 // Journal text saves quietly after a pause in typing, so say when it has.
 function showEntryStatus() {
   const el = document.getElementById("entry-status");
   if (el) el.textContent = textSavedKey === viewDay ? "Saved in this browser" : "";
+}
+
+// Every journal change (text, mood, stickers) saves through here so the
+// status reflects the latest attempt.
+function saveJournal(key) {
+  if (saveState()) textSavedKey = key;
+  showEntryStatus();
 }
 
 function setEntryText(key, text) {
@@ -692,8 +703,7 @@ function setEntryText(key, text) {
   textSaveTimer = setTimeout(() => {
     textSaveTimer = null;
     pruneEntry(key);
-    if (saveState()) textSavedKey = key;
-    showEntryStatus();
+    saveJournal(key);
     renderDaySummary(key);
     updateTitle();
   }, 400);
@@ -704,7 +714,7 @@ function flushEntryText() {
   clearTimeout(textSaveTimer);
   textSaveTimer = null;
   for (const k of Object.keys(state.entries)) pruneEntry(k);
-  saveState();
+  saveJournal(textSaveKey);
 }
 window.addEventListener("pagehide", flushEntryText);
 window.addEventListener("beforeunload", flushEntryText);
@@ -716,7 +726,7 @@ function toggleSticker(key, sticker) {
   else if (e.stickers.length < 12) e.stickers.push(sticker);
   e.updated = Date.now();
   pruneEntry(key);
-  saveState();
+  saveJournal(key);
   render();
 }
 
