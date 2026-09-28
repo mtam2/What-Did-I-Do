@@ -826,6 +826,13 @@ function openDay(key) {
 
 let renderedDay = "";
 
+// Every render rebuilds the view, so remember which folded sections the
+// user opened rather than snapping them shut after each change.
+const openFolds = new Set();
+function foldOpen(name) {
+  return openFolds.has(name) ? " open" : "";
+}
+
 function render() {
   renderedDay = todayKey();
   for (const name of ["today", "tasks", "journal", "calendar", "stats"]) {
@@ -886,13 +893,13 @@ function renderToday() {
     : "";
 
   const doneHtml = done.length
-    ? `<details class="fold"><summary>completed (${done.length})</summary>
+    ? `<details class="fold" data-fold="today-completed"${foldOpen("today-completed")}><summary>completed (${done.length})</summary>
         <ul class="task-list">${done.map((t) => taskRow(t)).join("")}</ul>
       </details>`
     : "";
 
   const unscheduledHtml = unscheduled.length
-    ? `<details class="fold"><summary>unscheduled (${unscheduled.length})</summary>
+    ? `<details class="fold" data-fold="today-unscheduled"${foldOpen("today-unscheduled")}><summary>unscheduled (${unscheduled.length})</summary>
         <ul class="task-list">${unscheduled.map((t) => taskRow(t, { showList: true, move: true })).join("")}</ul>
       </details>`
     : "";
@@ -1008,7 +1015,7 @@ function renderTasks() {
         <input type="date" id="quick-due" aria-label="Due date" />
         <button type="submit" class="primary" aria-label="Add">+</button>
       </form>
-      ${done.length ? `<details class="fold"><summary>completed (${done.length})</summary><ul class="task-list">${done.map((t) => taskRow(t, { showDue: true })).join("")}</ul></details>` : ""}
+      ${done.length ? `<details class="fold" data-fold="tasks-completed"${foldOpen("tasks-completed")}><summary>completed (${done.length})</summary><ul class="task-list">${done.map((t) => taskRow(t, { showDue: true })).join("")}</ul></details>` : ""}
     </div>
     <p class="hint">Drag a task to reorder it (press and hold on touch). Tap a task to edit it or set a reminder.</p>
   `;
@@ -1190,6 +1197,18 @@ function renderStats() {
 // ---------------------------------------------------------------------------
 
 const mainEl = document.querySelector("main");
+
+// "toggle" doesn't bubble, hence the capture listener.
+mainEl.addEventListener(
+  "toggle",
+  (e) => {
+    const name = e.target.dataset && e.target.dataset.fold;
+    if (!name) return;
+    if (e.target.open) openFolds.add(name);
+    else openFolds.delete(name);
+  },
+  true,
+);
 
 mainEl.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-action]");
