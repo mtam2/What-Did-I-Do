@@ -885,6 +885,12 @@ function renderToday() {
     ? `<div class="empty">${mascotTag(isToday ? "waving" : "thinking", "mascot")}<p>${isToday ? "Nothing planned yet. Add a task below." : "Nothing was planned for this day."}</p></div>`
     : "";
 
+  const doneHtml = done.length
+    ? `<details class="fold"><summary>completed (${done.length})</summary>
+        <ul class="task-list">${done.map((t) => taskRow(t)).join("")}</ul>
+      </details>`
+    : "";
+
   const unscheduledHtml = unscheduled.length
     ? `<details class="fold"><summary>unscheduled (${unscheduled.length})</summary>
         <ul class="task-list">${unscheduled.map((t) => taskRow(t, { showList: true, move: true })).join("")}</ul>
@@ -917,12 +923,13 @@ function renderToday() {
     <div class="block">
       <div class="block-head"><h2>Tasks</h2>${due.length ? `<span class="count">${done.length} of ${due.length} done</span>` : ""}</div>
       ${emptyTasks}
-      <ul class="task-list">${open.map((t) => taskRow(t)).join("")}${done.map((t) => taskRow(t)).join("")}</ul>
+      <ul class="task-list">${open.map((t) => taskRow(t)).join("")}</ul>
       <form class="quick-add" id="quick-add">
         <input type="text" id="quick-title" placeholder="Add a task for ${isToday ? "today" : "this day"}…" maxlength="200" autocomplete="off" />
         ${state.lists.length > 1 ? `<select id="quick-list" aria-label="List">${listOptions}</select>` : ""}
         <button type="submit" class="primary" aria-label="Add">+</button>
       </form>
+      ${doneHtml}
       ${unscheduledHtml}
     </div>
 
