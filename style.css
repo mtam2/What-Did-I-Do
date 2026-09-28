@@ -600,8 +600,27 @@ body.dark .task-tile img.icon {
 .task-row.drag-over .task-main {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
-.reorderable .task-row {
-  touch-action: pan-y;
+.drag-handle {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 28px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  color: var(--text-faintest);
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: -0.1em;
+}
+.drag-handle::before {
+  content: "\22EE\22EE";
+}
+.task-row.dragging .drag-handle {
+  cursor: grabbing;
 }
 
 /* Quick add */

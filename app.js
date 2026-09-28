@@ -848,6 +848,7 @@ function taskRow(t, opts) {
       </span>
     </button>
     ${opts && opts.move ? `<button class="task-move" data-action="move-today" data-id="${t.id}" title="Move to today">→ today</button>` : ""}
+    ${opts && opts.reorder ? `<span class="drag-handle" title="Drag to reorder" aria-hidden="true"></span>` : ""}
   </li>`;
 }
 
@@ -977,7 +978,7 @@ function renderTasks() {
         <button class="small" data-action="edit-list" data-id="${l.id}">${l.id === INBOX_ID ? "rename" : "edit"}</button>
       </div>
       ${open.length ? "" : `<div class="empty">${mascotTag(done.length ? "celebrating" : "waving", "mascot")}<p>${done.length ? "All done here." : "Nothing in this list yet."}</p></div>`}
-      <ul class="task-list reorderable">${open.map((t) => taskRow(t, { showDue: true })).join("")}</ul>
+      <ul class="task-list reorderable">${open.map((t) => taskRow(t, { showDue: true, reorder: true })).join("")}</ul>
       <form class="quick-add" id="quick-add">
         <input type="text" id="quick-title" placeholder="Add a task to ${esc(l.name)}…" maxlength="200" autocomplete="off" />
         <input type="date" id="quick-due" aria-label="Due date" />
@@ -1243,17 +1244,18 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Drag-to-reorder via Pointer Events (touch + mouse). Touch: long-press to
-// enter drag mode so vertical scroll still works. Mouse: small threshold.
+// Drag-to-reorder via Pointer Events. Mouse drags from anywhere on the row.
+// Touch drags only from the handle: the rest of the row must keep vertical
+// scrolling, and a browser that has claimed a touch for scrolling cancels
+// the pointer, so the handle opts out of panning with touch-action: none.
 let drag = null;
 const DRAG_THRESHOLD = 5;
-const LONG_PRESS_MS = 350;
 
 mainEl.addEventListener("pointerdown", (e) => {
   const row = e.target.closest(".reorderable > .task-row");
   if (!row) return;
   if (e.target.closest(".check")) return;
-  if (e.pointerType === "mouse" && e.button !== 0) return;
+  if (e.pointerType === "mouse" ? e.button !== 0 : !e.target.closest(".drag-handle")) return;
   drag = {
     id: Number(row.dataset.id),
     row,
@@ -1262,14 +1264,7 @@ mainEl.addEventListener("pointerdown", (e) => {
     startX: e.clientX,
     startY: e.clientY,
     started: false,
-    isTouch: e.pointerType !== "mouse",
-    longPressTimer: null,
   };
-  if (drag.isTouch) {
-    drag.longPressTimer = setTimeout(() => {
-      if (drag) startDrag();
-    }, LONG_PRESS_MS);
-  }
   document.addEventListener("pointermove", onDocPointerMove);
   document.addEventListener("pointerup", onDocPointerUp);
   document.addEventListener("pointercancel", onDocPointerUp);
@@ -1288,15 +1283,7 @@ function onDocPointerMove(e) {
   const dx = e.clientX - drag.startX;
   const dy = e.clientY - drag.startY;
   if (!drag.started) {
-    const dist = Math.hypot(dx, dy);
-    if (drag.isTouch) {
-      if (dist > 10) {
-        clearTimeout(drag.longPressTimer);
-        cleanupDrag();
-      }
-      return;
-    }
-    if (dist < DRAG_THRESHOLD) return;
+    if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
     startDrag();
   }
   e.preventDefault();
@@ -1311,7 +1298,6 @@ function onDocPointerMove(e) {
 
 function onDocPointerUp(e) {
   if (!drag || e.pointerId !== drag.pointerId) return;
-  clearTimeout(drag.longPressTimer);
   const wasDrag = drag.started;
   if (wasDrag) {
     const target = e.type === "pointercancel" ? null : drag.list.querySelector(".drag-over");
