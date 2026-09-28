@@ -1405,32 +1405,25 @@ footer a {
     height: 100%;
     border: none;
     border-radius: 18px;
-    font-size: 0.8rem;
-    padding: 0 4px;
+    flex-direction: column;
+    font-size: 0.7rem;
+    padding: 0 2px;
     color: var(--text-faint);
     background: none;
     justify-content: center;
-    gap: 6px;
+    gap: 2px;
   }
   .nav-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
   .nav-icon.art-emoji {
-    font-size: 22px;
-    line-height: 28px;
-  }
-  .nav button .nav-label {
-    display: none;
+    font-size: 20px;
+    line-height: 26px;
   }
   .nav button.active {
-    flex: 1.9 1 0;
     color: var(--text);
     background: var(--accent-soft);
-  }
-  .nav button.active .nav-label {
-    display: inline;
-    font-weight: 800;
   }
   .nav button:active {
     transform: none;
