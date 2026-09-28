@@ -766,10 +766,14 @@ function startOfMonth(ts) {
   return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
 }
 
+// Safe in element text and in quoted attribute values.
 function esc(s) {
-  const div = document.createElement("div");
-  div.textContent = s == null ? "" : String(s);
-  return div.innerHTML;
+  return (s == null ? "" : String(s))
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function showView(name) {
