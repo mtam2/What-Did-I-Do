@@ -16,7 +16,7 @@ The feature list is deliberately short too. Tasks with a due date, one journal e
 
 Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-do.html`.
 
-**Today** -- the day's tasks on top, the day's journal below. Type in the box at the bottom of the task list and press + to add a task for this day. Tap the circle to tick one off. Tap the title to edit it, add notes, move it to another day, or set a reminder time. The arrows (or ← and → on a keyboard) step through days, so yesterday's entry is one tap away.
+**Today** -- the day's tasks on top, the day's journal below. Type in the box at the bottom of the task list and press + to add a task for this day. Tap the circle to tick one off. Tap the title to edit it, add notes, give it a short checklist (the row then shows 2/4 as you tick items off), move it to another day, or set a reminder time. The arrows (or ← and → on a keyboard) step through days, so yesterday's entry is one tap away.
 
 **Overdue** -- tasks from earlier days that never got done sit in a red block above today's list, each with a "→ today" button, or move them all at once.
 

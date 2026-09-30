@@ -91,6 +91,9 @@
         <h2 id="task-dialog-title">Task</h2>
         <label>Title<input type="text" id="task-title" required maxlength="200" autocomplete="off" /></label>
         <label>Notes<textarea id="task-notes" rows="3" maxlength="4000"></textarea></label>
+        <div class="field-label">Checklist</div>
+        <ul id="task-items" class="checklist"></ul>
+        <button type="button" id="btn-task-item-add" class="small">+ item</button>
         <div class="form-row">
           <label>Due<input type="date" id="task-due" /></label>
           <label>Remind at<input type="time" id="task-reminder" /></label>

@@ -133,6 +133,7 @@ function packStickerKeys() {
 
 const STORAGE_KEY = "what_did_i_do";
 const INBOX_ID = 1;
+const MAX_ITEMS = 20; // checklist items per task; used while loading, so it lives above loadState
 
 function defaultState() {
   return {
@@ -190,9 +191,19 @@ function validTask(t) {
   if (t.done != null && typeof t.done !== "number") t.done = null;
   if (typeof t.notes !== "string") t.notes = "";
   if (typeof t.reminder !== "string") t.reminder = "";
+  t.items = sanitizeItems(t.items);
   if (typeof t.order !== "number") t.order = t.id;
   if (typeof t.created !== "number") t.created = t.id;
   return true;
+}
+
+// A task's checklist: a short flat list of { text, done }.
+function sanitizeItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter((it) => it && typeof it === "object" && typeof it.text === "string" && it.text.trim() !== "")
+    .slice(0, MAX_ITEMS)
+    .map((it) => ({ text: it.text.trim().slice(0, 100), done: !!it.done }));
 }
 
 function validEntry(e) {
@@ -438,7 +449,7 @@ function addTask(title, due, listId) {
   const id = newId();
   const siblings = state.tasks.filter((t) => t.due === due);
   const order = siblings.length ? Math.max(...siblings.map((t) => t.order)) + 1 : 0;
-  const task = { id, listId: listId || INBOX_ID, title, notes: "", due: due || null, reminder: "", done: null, created: id, order };
+  const task = { id, listId: listId || INBOX_ID, title, notes: "", items: [], due: due || null, reminder: "", done: null, created: id, order };
   state.tasks.push(task);
   saveState();
   render();
@@ -513,6 +524,7 @@ function reorderTasks(ids) {
 const taskDialog = document.getElementById("task-dialog");
 const taskForm = document.getElementById("task-form");
 let editingTask = null; // id, or null when creating
+let editingItems = []; // the checklist being edited, copied back on save
 
 function openTaskDialog(id, presetDue) {
   editingTask = id || null;
@@ -520,6 +532,8 @@ function openTaskDialog(id, presetDue) {
   document.getElementById("task-dialog-title").textContent = t ? "Edit task" : "New task";
   document.getElementById("task-title").value = t ? t.title : "";
   document.getElementById("task-notes").value = t ? t.notes : "";
+  editingItems = t ? t.items.map((it) => ({ ...it })) : [];
+  renderChecklist();
   document.getElementById("task-due").value = t ? t.due || "" : presetDue || "";
   document.getElementById("task-reminder").value = t ? t.reminder : "";
   const sel = document.getElementById("task-list");
@@ -539,6 +553,7 @@ taskForm.addEventListener("submit", (e) => {
   const reminder = document.getElementById("task-reminder").value || "";
   const listId = Number(document.getElementById("task-list").value) || INBOX_ID;
   const notes = document.getElementById("task-notes").value;
+  const items = sanitizeItems(editingItems);
   let t = editingTask ? taskById(editingTask) : null;
   if (!t) t = addTask(title, due, listId);
   if (!t) return;
@@ -546,11 +561,60 @@ taskForm.addEventListener("submit", (e) => {
     const siblings = state.tasks.filter((x) => x.due === due && x.id !== t.id);
     t.order = siblings.length ? Math.max(...siblings.map((x) => x.order)) + 1 : 0;
   }
-  Object.assign(t, { title, due, reminder, listId, notes });
+  Object.assign(t, { title, due, reminder, listId, notes, items });
   if (reminder) maybeRequestNotificationPermission();
   saveState();
   taskDialog.close();
   render();
+});
+
+// Checklist rows are rebuilt from editingItems; typing edits the array in
+// place so a rebuild (after add or remove) never loses text.
+const itemsEl = document.getElementById("task-items");
+const btnItemAdd = document.getElementById("btn-task-item-add");
+
+function renderChecklist(focusIndex) {
+  itemsEl.innerHTML = editingItems
+    .map(
+      (it, i) => `<li class="checklist-row">
+        <input type="checkbox" class="item-done" data-i="${i}" aria-label="Done"${it.done ? " checked" : ""} />
+        <input type="text" class="item-text" data-i="${i}" value="${esc(it.text)}" maxlength="100" placeholder="Item" autocomplete="off" />
+        <button type="button" class="item-remove" data-i="${i}" aria-label="Remove item">×</button>
+      </li>`,
+    )
+    .join("");
+  btnItemAdd.hidden = editingItems.length >= MAX_ITEMS;
+  if (focusIndex != null) {
+    const field = itemsEl.querySelector(`.item-text[data-i="${focusIndex}"]`);
+    if (field) field.focus();
+  }
+}
+
+function addChecklistItem(after) {
+  if (editingItems.length >= MAX_ITEMS) return;
+  const at = after == null ? editingItems.length : after + 1;
+  editingItems.splice(at, 0, { text: "", done: false });
+  renderChecklist(at);
+}
+
+btnItemAdd.addEventListener("click", () => addChecklistItem());
+itemsEl.addEventListener("input", (e) => {
+  if (e.target.classList.contains("item-text")) editingItems[Number(e.target.dataset.i)].text = e.target.value;
+});
+// "change", not "input": older Safari fires no input event for a checkbox.
+itemsEl.addEventListener("change", (e) => {
+  if (e.target.classList.contains("item-done")) editingItems[Number(e.target.dataset.i)].done = e.target.checked;
+});
+itemsEl.addEventListener("click", (e) => {
+  const b = e.target.closest(".item-remove");
+  if (!b) return;
+  editingItems.splice(Number(b.dataset.i), 1);
+  renderChecklist();
+});
+itemsEl.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || !e.target.classList.contains("item-text")) return;
+  e.preventDefault(); // Enter here means "next item", not "save the task"
+  addChecklistItem(Number(e.target.dataset.i));
 });
 
 document.getElementById("btn-task-cancel").addEventListener("click", () => taskDialog.close());
@@ -874,6 +938,7 @@ function taskRow(t, opts) {
   if (opts && opts.showDue && t.due) meta.push(t.due === todayKey() ? "today" : formatDay(t.due));
   if (opts && opts.overdue) meta.push(formatDay(t.due));
   if (t.reminder) meta.push(formatTime(t.reminder));
+  if (t.items.length) meta.push(`${t.items.filter((it) => it.done).length}/${t.items.length}`);
   if (t.notes.trim()) meta.push("notes");
   return `<li class="${cls}" data-id="${t.id}" style="--list-color:${sanitizeColor(l.color)}">
     <button class="check" data-action="toggle" data-id="${t.id}" role="checkbox" aria-checked="${!!t.done}" aria-label="${t.done ? "Mark not done" : "Mark done"}"></button>

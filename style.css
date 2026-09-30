@@ -1344,6 +1344,52 @@ dialog h2 {
   color: var(--text-faint);
   margin-bottom: 6px;
 }
+
+/* Task checklist */
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checklist-row .item-done {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--good);
+}
+.checklist-row .item-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 10px;
+  border-radius: 12px;
+}
+.checklist-row .item-done:checked + .item-text {
+  text-decoration: line-through;
+  color: var(--text-faint);
+}
+.checklist-row .item-remove {
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  color: var(--text-faint);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+#btn-task-item-add {
+  margin-bottom: 12px;
+}
 .icon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
