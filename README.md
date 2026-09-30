@@ -30,7 +30,7 @@ Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-
 
 **Search** -- both the Tasks and Journal tabs have a bar at the top. Tasks searches titles and notes and filters by list, open or done, and scheduled, unscheduled, or overdue. While anything is set, the tab shows the matching tasks from every list in one place. Everything is searched in your browser.
 
-**Calendar** -- the month at a glance. A colored dot is the mood, a small dot means you wrote something, and the bar shows how many of that day's tasks got done. Tap a day to open it.
+**Calendar** -- the month at a glance. A day shows its mood face, or its first sticker when there's no mood, or a small dot when you only wrote something, and the bar shows how many of that day's tasks got done. Tap a day to open it.
 
 **Stats** -- your current and longest streak, a twelve-week contribution graph shaded by tasks completed, and this month's moods. A day counts toward the streak when it has a journal entry or at least one completed task. Filling in yesterday through the arrows counts too, on purpose.
 

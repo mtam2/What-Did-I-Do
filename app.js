@@ -1256,12 +1256,21 @@ function renderCalendar() {
     const dueDone = dueDoneMap[key] || 0;
     const completed = doneMap[key] || 0;
     const future = key > today;
+    const sticker = e && e.stickers.length ? e.stickers[0] : "";
     const cls = ["cal-cell", key === today ? "today" : "", future ? "future" : "", (e && entryHasContent(e)) || completed ? "active" : ""].filter(Boolean).join(" ");
     const title = [formatDay(key), mood ? `mood ${mood.label}` : "", due ? `${dueDone}/${due} tasks` : "", hasText ? "journal" : ""].filter(Boolean).join(" · ");
     const bar = due ? `<span class="cal-bar" aria-hidden="true"><span style="width:${Math.round((dueDone / due) * 100)}%"></span></span>` : "";
+    // The day's face, else its first sticker, else a dot for writing alone.
+    const mark = mood
+      ? moodTag(e.mood, "mood-face cal-face")
+      : sticker
+        ? stickerTag(sticker, "sticker cal-sticker")
+        : hasText
+          ? `<span class="entry-dot" aria-hidden="true"></span>`
+          : "";
     cells.push(`<button class="${cls}" data-action="open-day" data-key="${key}" title="${esc(title)}" style="--mood:${mood ? mood.color : "transparent"}">
       <span class="cal-num">${d}</span>
-      <span class="cal-marks"><span class="mood-dot${mood ? "" : " none"}" aria-hidden="true"></span>${hasText ? `<span class="entry-dot" aria-hidden="true"></span>` : ""}</span>
+      <span class="cal-marks">${mark}</span>
       ${bar}
     </button>`);
   }
@@ -1277,7 +1286,8 @@ function renderCalendar() {
     </div>
     <div class="calendar">${heads.join("")}${cells.join("")}</div>
     <div class="legend">
-      <span><span class="mood-dot legend-dot" style="--mood:${MOODS[3].color}"></span> mood</span>
+      <span>${moodTag(3, "mood-face cal-face")} mood</span>
+      <span>${stickerTag("star", "sticker cal-sticker")} sticker</span>
       <span><span class="entry-dot legend-dot"></span> journal text</span>
       <span><span class="cal-bar legend-bar"><span style="width:60%"></span></span> tasks done</span>
     </div>

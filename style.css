@@ -1122,10 +1122,27 @@ body.dark .avatar-ring img.icon {
   gap: 3px;
   align-items: center;
   justify-content: center;
-  min-height: 10px;
+  min-height: 18px;
+}
+/* A recorded day shows its face or first sticker; the shape carries the
+   meaning, the mood color stays on the day's tint only. */
+.cal-face,
+.cal-sticker {
+  width: 18px;
+  height: 18px;
+}
+.cal-face.art-emoji,
+.cal-sticker.art-emoji {
+  font-size: 14px;
+  line-height: 18px;
+}
+body.dark img.cal-face {
+  padding: 1px;
+  border-radius: 4px;
 }
 .cal-bar {
   display: block;
+  flex-shrink: 0;
   height: 4px;
   border-radius: 2px;
   background: var(--border-light);
@@ -1543,13 +1560,33 @@ footer a {
     padding-bottom: 4px;
     font-size: 0.9rem;
   }
-  .mood-face {
+  .mood-btn .mood-face {
     width: 36px;
     height: 36px;
   }
-  .mood-face.art-emoji {
+  .mood-btn .mood-face.art-emoji {
     font-size: 27px;
     line-height: 36px;
+  }
+  /* A narrow phone gives a day under 40px of width; let it grow taller
+     than wide so number, face, and bar fit, and stay a comfortable tap. */
+  .cal-cell {
+    padding: 3px;
+    aspect-ratio: auto;
+    min-height: 44px;
+  }
+  .cal-marks {
+    min-height: 16px;
+  }
+  .cal-face,
+  .cal-sticker {
+    width: 16px;
+    height: 16px;
+  }
+  .cal-face.art-emoji,
+  .cal-sticker.art-emoji {
+    font-size: 12px;
+    line-height: 16px;
   }
   .entry-text {
     font-size: 1rem;
