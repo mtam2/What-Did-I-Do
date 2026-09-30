@@ -953,19 +953,24 @@ function render() {
 function taskRow(t, opts) {
   const l = listById(t.listId);
   const cls = ["task-row", t.done ? "done" : "", opts && opts.overdue ? "overdue" : ""].filter(Boolean).join(" ");
-  const meta = [];
-  if (opts && opts.showDue && t.due) meta.push(t.due === todayKey() ? "today" : formatDay(t.due));
-  if (opts && opts.overdue) meta.push(formatDay(t.due));
-  if (t.reminder) meta.push(formatTime(t.reminder));
-  if (t.items.length) meta.push(`${t.items.filter((it) => it.done).length}/${t.items.length}`);
-  if (t.notes.trim()) meta.push("notes");
+  // Plain metadata reads as small text; only checklist progress and an
+  // overdue date get a pill, so a pill always means something.
+  const meta = [{ text: l.name }];
+  if (opts && opts.showDue && t.due) meta.push({ text: t.due === todayKey() ? "today" : formatDay(t.due) });
+  if (opts && opts.overdue) meta.push({ text: formatDay(t.due), pill: "status" });
+  if (t.reminder) meta.push({ text: formatTime(t.reminder) });
+  if (t.items.length) meta.push({ text: `${t.items.filter((it) => it.done).length}/${t.items.length}`, pill: "" });
+  if (t.notes.trim()) meta.push({ text: "notes" });
+  const metaHtml = meta
+    .map((m) => (m.pill === undefined ? `<span class="meta-text">${esc(m.text)}</span>` : `<span class="meta-chip ${m.pill}">${esc(m.text)}</span>`))
+    .join("");
   return `<li class="${cls}" data-id="${t.id}" style="--list-color:${sanitizeColor(l.color)}">
     <button class="check" data-action="toggle" data-id="${t.id}" role="checkbox" aria-checked="${!!t.done}" aria-label="${t.done ? "Mark not done" : "Mark done"}"></button>
     <button class="task-main" data-action="edit-task" data-id="${t.id}">
       <span class="task-tile">${iconTag(l.icon, "icon task-icon")}</span>
       <span class="task-body">
         <span class="task-title">${esc(t.title)}</span>
-        <span class="task-meta"><span class="meta-chip list-chip">${esc(l.name)}</span>${meta.map((m) => `<span class="meta-chip">${esc(m)}</span>`).join("")}</span>
+        <span class="task-meta">${metaHtml}</span>
       </span>
     </button>
     ${opts && opts.move ? `<button class="task-move" data-action="move-today" data-id="${t.id}" title="Move to today">→ today</button>` : ""}

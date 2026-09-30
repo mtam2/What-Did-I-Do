@@ -21,18 +21,20 @@
   --text: #222;
   --text-muted: #4a4640;
   /* The lightest text still needs 4.5:1 on --surface-2, which leaves no
-     room for a paler tier: faintest and placeholder match faint. */
+     room for a paler tier; placeholders and captions use faint too. */
   --text-faint: #6e6a62;
-  --text-faintest: #6e6a62;
-  --text-placeholder: #6e6a62;
   --surface: #fffdf6;
   --surface-2: #f0ebdd;
-  --surface-raised: #fffdf6;
   --border: #d6cfbc;
   --border-light: #e8e1cf;
   --btn-bg: #222;
   --btn-bg-hover: #444;
   --shadow: rgba(60, 50, 25, 0.1);
+  /* Three elevations: a hairline, a resting card, and something floating
+     (menus, sheets, a dragged row, the phone nav). */
+  --shadow-1: 0 1px 3px var(--shadow);
+  --shadow-2: 0 2px 8px var(--shadow);
+  --shadow-3: 0 8px 24px var(--shadow);
   --danger: #c43d2c;
   --danger-faint: #f7e4e0;
   --accent: #d9903a;
@@ -46,9 +48,13 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --nav-height: 0px;
-  --radius: 22px;
-  --radius-sm: 16px;
+  /* Four corner sizes: chips, controls, cards inside cards, and blocks. */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
   --tile-bg: #fff6e3;
+  --art-halo: drop-shadow(0 0 0 transparent);
   color-scheme: light;
 }
 body.dark {
@@ -57,17 +63,15 @@ body.dark {
   --text: #ece6da;
   --text-muted: #c4bcae;
   --text-faint: #a1998b;
-  --text-faintest: #a1998b;
-  --text-placeholder: #a1998b;
   --surface: #292623;
   --surface-2: #33302c;
-  --surface-raised: #3d3934;
   --border: #46413b;
   --border-light: #38342f;
   --btn-bg: #f0c97a;
   --btn-bg-hover: #f5d48f;
-  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow: rgba(0, 0, 0, 0.28);
   --tile-bg: #3d3934;
+  --art-halo: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
   --danger: #ff5a4d;
   --danger-faint: #3a1a17;
   --accent: #e8a552;
@@ -111,8 +115,9 @@ body.dark[data-pack="cat"] {
   -webkit-tap-highlight-color: transparent;
 }
 body {
-  font-family:
-    "Nunito", "Quicksand", "Varela Round", ui-rounded, "SF Pro Rounded", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  /* No web fonts: the file ships alone, so it asks for the platform's
+     rounded face where one exists and its default sans everywhere else. */
+  font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   padding: calc(20px + var(--safe-top)) calc(20px + var(--safe-right)) calc(20px + var(--safe-bottom)) calc(20px + var(--safe-left));
@@ -130,19 +135,27 @@ h2 {
 a {
   color: inherit;
 }
+/* Buttons are soft fills, not outlines; borders are for inputs. The
+   transparent border keeps the box the same size as a bordered input so
+   the two line up in a row, and lets a state color it in. */
 button {
   font: inherit;
   cursor: pointer;
-  background: none;
-  border: 2px solid var(--border);
-  color: var(--text-faint);
-  border-radius: 14px;
+  background: var(--surface-2);
+  border: 2px solid transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
   padding: 8px 14px;
   min-height: 40px;
-  font-weight: 700;
+  font-weight: 600;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
 }
 button:active {
   transform: scale(0.97);
@@ -150,7 +163,14 @@ button:active {
 @media (hover: hover) {
   button:hover {
     color: var(--text);
-    border-color: var(--text-faint);
+    background: color-mix(in srgb, var(--text) 8%, var(--surface-2));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
   }
 }
 button.primary {
@@ -173,10 +193,11 @@ button.small {
   font-size: 0.8rem;
   padding: 4px 10px;
   min-height: 32px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
 }
 button.link {
   border: none;
+  background: none;
   padding: 0;
   min-height: 0;
   color: var(--accent);
@@ -185,6 +206,7 @@ button.link {
 }
 button.danger-link {
   border: none;
+  background: none;
   color: var(--danger);
   padding-left: 0;
 }
@@ -195,13 +217,13 @@ textarea {
   color: var(--text);
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   min-height: 42px;
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-placeholder);
+  color: var(--text-faint);
 }
 textarea {
   resize: vertical;
@@ -274,12 +296,12 @@ textarea {
   font-size: 64px;
   line-height: 96px;
 }
-/* Generated art has mid-grey outlines; a raised chip keeps it legible on black. */
+/* Generated art has mid-grey outlines; in the dark a pale halo keeps the
+   edges legible without boxing each icon in a chip. */
 body.dark img.icon,
-body.dark img.mood-face {
-  background: var(--surface-raised);
-  border-radius: 6px;
-  padding: 2px;
+body.dark img.mood-face,
+body.dark img.cal-face {
+  filter: var(--art-halo);
 }
 
 /* Save failure banner */
@@ -290,7 +312,7 @@ body.dark img.mood-face {
   margin-bottom: 20px;
   padding: 12px 16px;
   border: 2px solid var(--danger);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--danger-faint);
   color: var(--text);
 }
@@ -342,16 +364,13 @@ body.dark img.mood-face {
   flex-wrap: wrap;
 }
 .nav button {
-  font-size: 0.875rem;
-  padding: 6px 12px;
-  min-height: 38px;
-  border-radius: 12px;
-}
-.nav button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-color: transparent;
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  min-height: 38px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
 }
 .nav-icon {
@@ -361,10 +380,6 @@ body.dark img.mood-face {
 .nav-icon.art-emoji {
   font-size: 16px;
   line-height: 20px;
-}
-body.dark .nav img.nav-icon {
-  background: none;
-  padding: 0;
 }
 .nav button.active {
   color: var(--text);
@@ -382,8 +397,7 @@ body.dark .nav img.nav-icon {
   padding: 0;
   font-size: 1.3rem;
   line-height: 1;
-  border-radius: 14px;
-  background: var(--surface);
+  border-radius: var(--radius-md);
 }
 .header-tools {
   display: none;
@@ -394,8 +408,8 @@ body.dark .nav img.nav-icon {
   flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px var(--shadow);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-3);
   padding: 6px;
   min-width: 170px;
 }
@@ -404,7 +418,8 @@ body.dark .nav img.nav-icon {
 }
 .header-tools button {
   border: none;
-  border-radius: 8px;
+  background: none;
+  border-radius: var(--radius-xs);
   text-align: left;
   min-height: 44px;
   font-size: 1rem;
@@ -424,10 +439,18 @@ body.fullscreen footer {
 /* Blocks (cards) */
 .block {
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 16px 16px 16px;
-  box-shadow: 0 2px 10px var(--shadow);
+  box-shadow: var(--shadow-2);
   margin-bottom: 16px;
+}
+/* Dark surfaces separate by a thin edge rather than a heavy shadow. */
+body.dark .block,
+body.dark .tile,
+body.dark .journal-entry,
+body.dark .calendar {
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--border-light);
 }
 .block-head {
   display: flex;
@@ -443,11 +466,17 @@ body.fullscreen footer {
 }
 .count {
   font-size: 0.8rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
+/* Overdue: a red edge and a faint tint, so the label carries the warning
+   without the block shouting over the rest of the day. */
 .overdue-block {
-  box-shadow: inset 0 0 0 2px var(--danger), 0 2px 10px var(--shadow);
+  box-shadow: inset 3px 0 0 var(--danger), var(--shadow-2);
+  background: color-mix(in srgb, var(--danger) 5%, var(--surface));
+}
+body.dark .overdue-block {
+  box-shadow: inset 3px 0 0 var(--danger), var(--shadow-1);
 }
 .overdue-block h2 {
   color: var(--danger);
@@ -466,11 +495,8 @@ body.fullscreen footer {
   padding: 0;
   font-size: 1.6rem;
   line-height: 1;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
-  background: var(--surface);
-  border-color: transparent;
-  box-shadow: 0 2px 6px var(--shadow);
 }
 .day-title {
   flex: 1 1 auto;
@@ -487,8 +513,8 @@ body.fullscreen footer {
   min-height: 1.3em;
 }
 
-/* Task rows: each one a soft card tinted by its list color, checkbox in
-   its own little dark well like a sticker sheet. */
+/* Task rows: each one a soft card tinted by its list color. The checkbox
+   keeps a 44px tap target but no well of its own. */
 .task-list {
   list-style: none;
   display: flex;
@@ -506,9 +532,9 @@ body.fullscreen footer {
   height: 44px;
   min-height: 0;
   padding: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   border: none;
-  background: var(--surface-2);
+  background: none;
   flex-shrink: 0;
   position: relative;
   margin-top: 6px;
@@ -520,10 +546,13 @@ body.fullscreen footer {
   top: 11px;
   width: 22px;
   height: 22px;
-  border-radius: 7px;
+  border-radius: var(--radius-xs);
   border: 3px solid var(--text-faint);
   box-sizing: border-box;
   background: var(--surface);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .check::after {
   content: "";
@@ -536,6 +565,7 @@ body.fullscreen footer {
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
   opacity: 0;
+  transition: opacity 0.15s ease;
 }
 .task-row.done .check::before {
   background: var(--good);
@@ -551,39 +581,34 @@ body.fullscreen footer {
   align-items: center;
   gap: 12px;
   border: none;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   padding: 10px 12px;
   text-align: left;
   color: var(--text);
   min-height: 56px;
   cursor: pointer;
   background: color-mix(in srgb, var(--list-color) 16%, var(--surface-2));
-  font-weight: 700;
+  font-weight: 400;
 }
 body.dark .task-main {
   background: color-mix(in srgb, var(--list-color) 22%, var(--surface-2));
 }
+/* The card is already tinted by the list, so the icon sits bare. */
 .task-tile {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--list-color) 30%, var(--tile-bg));
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .task-tile .icon {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
 }
 .task-tile .icon.art-emoji {
-  font-size: 24px;
-  line-height: 30px;
-}
-body.dark .task-tile img.icon {
-  background: none;
-  padding: 0;
+  font-size: 22px;
+  line-height: 28px;
 }
 .task-body {
   display: flex;
@@ -595,6 +620,7 @@ body.dark .task-tile img.icon {
 .task-title {
   overflow-wrap: anywhere;
   line-height: 1.3;
+  font-weight: 600;
 }
 .task-row.done .task-main {
   opacity: 0.6;
@@ -602,22 +628,36 @@ body.dark .task-tile img.icon {
 .task-row.done .task-title {
   text-decoration: line-through;
 }
+/* Ordinary metadata is small text; only checklist progress and the
+   overdue date earn a pill. */
 .task-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  align-items: center;
+  gap: 2px 6px;
+  font-size: 0.78rem;
+  /* Muted, not faint: on the list-tinted card faint falls under 4.5:1. */
+  color: var(--text-muted);
+}
+.meta-text {
+  white-space: nowrap;
+}
+.meta-text + .meta-text::before {
+  content: "\00B7";
+  margin-right: 6px;
 }
 .meta-chip {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   background: color-mix(in srgb, var(--surface) 55%, transparent);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 2px 7px;
   white-space: nowrap;
 }
-.task-row.overdue .meta-chip:not(.list-chip) {
+.meta-chip.status {
   color: var(--danger);
+  background: var(--danger-faint);
 }
 .task-move {
   font-size: 0.8rem;
@@ -625,12 +665,12 @@ body.dark .task-tile img.icon {
   min-height: 36px;
   white-space: nowrap;
   align-self: center;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
 }
 .task-row.dragging {
   opacity: 0.85;
-  box-shadow: 0 8px 22px var(--shadow);
-  border-radius: 18px;
+  box-shadow: var(--shadow-3);
+  border-radius: var(--radius-md);
   z-index: 5;
 }
 .task-row.drag-over .task-main {
@@ -647,7 +687,7 @@ body.dark .task-tile img.icon {
   touch-action: none;
   cursor: grab;
   user-select: none;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   font-size: 1.2rem;
   font-weight: 900;
   letter-spacing: -0.1em;
@@ -678,7 +718,7 @@ body.dark .task-tile img.icon {
   padding: 0;
   font-size: 1.4rem;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
 }
 .fold {
   margin-top: 12px;
@@ -730,7 +770,7 @@ body.dark .task-tile img.icon {
   align-items: center;
   gap: 4px;
   padding: 8px 4px 6px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border-color: transparent;
   background: var(--surface-2);
   min-height: 0;
@@ -738,12 +778,14 @@ body.dark .task-tile img.icon {
 }
 .mood-btn .mood-label {
   font-size: 0.72rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
 }
 .mood-btn.picked {
   border-color: var(--mood);
   background: color-mix(in srgb, var(--mood) 22%, var(--surface));
-  transform: translateY(-2px);
+}
+body.dark .mood-btn.picked {
+  background: color-mix(in srgb, var(--mood) 30%, var(--surface));
 }
 /* The mood color marks the border and fill; on the tinted fill it can't
    carry small text, so the label keeps the body color. */
@@ -751,44 +793,57 @@ body.dark .task-tile img.icon {
   color: var(--text);
   font-weight: 600;
 }
+/* Unpicked faces step back but stay readable; the picked one is told
+   apart by its border and fill, not by dimming the rest. */
+.mood-btn .mood-face {
+  transition: filter 0.15s ease;
+}
 .mood-btn img.mood-face,
 .mood-btn .mood-face.art-emoji {
-  filter: grayscale(0.7) opacity(0.7);
+  filter: grayscale(0.5) opacity(0.85) var(--art-halo);
+}
+body.dark .mood-btn img.mood-face,
+body.dark .mood-btn .mood-face.art-emoji {
+  filter: grayscale(0.35) opacity(0.9) var(--art-halo);
 }
 .mood-btn.picked img.mood-face,
 .mood-btn.picked .mood-face.art-emoji,
 .mood-row:not(:has(.picked)) .mood-face {
-  filter: none;
+  filter: var(--art-halo);
 }
 .entry-text {
   width: 100%;
   min-height: 96px;
   font-size: 1rem;
   line-height: 26px;
-  padding: 14px;
-  border-radius: 18px;
+  padding: 15px;
+  border-radius: var(--radius-md);
   resize: none;
   overflow: hidden;
-  background: var(--surface-2);
-  border-color: transparent;
-  font-weight: 600;
+  background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
+  border: 1px solid var(--border-light);
+  font-weight: 400;
+}
+.entry-text:focus {
+  border-color: var(--border);
 }
 /* Paper: drawn with gradients in the pack's accent so it follows the
    mascot and both themes. The 26px rhythm matches the line height, offset
-   by the top padding so each rule sits under a line of writing. */
+   by the top padding so each rule sits under a line of writing. Kept
+   faint so the writing leads. */
 .entry-text {
-  --paper-ink: color-mix(in srgb, var(--accent) 45%, transparent);
+  --paper-ink: color-mix(in srgb, var(--accent) 22%, transparent);
   background-attachment: local;
-  background-position: 0 14px;
+  background-position: 0 15px;
 }
 body[data-paper="lined"] .entry-text {
   background-image: repeating-linear-gradient(to bottom, transparent 0 25px, var(--paper-ink) 25px 26px);
 }
 body[data-paper="dotted"] .entry-text {
-  --paper-ink: color-mix(in srgb, var(--accent) 60%, transparent);
+  --paper-ink: color-mix(in srgb, var(--accent) 32%, transparent);
   background-image: radial-gradient(circle, var(--paper-ink) 1.2px, transparent 1.6px);
   background-size: 20px 26px;
-  background-position: 4px 1px;
+  background-position: 4px 2px;
 }
 .starter-row {
   display: flex;
@@ -803,7 +858,7 @@ body[data-paper="dotted"] .entry-text {
   font-size: 0.8rem;
   padding: 4px 10px;
   min-height: 32px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--surface-2);
   border-color: transparent;
 }
@@ -823,20 +878,20 @@ body[data-paper="dotted"] .entry-text {
 .sticker-choice {
   padding: 4px;
   min-height: 0;
-  border-radius: 10px;
-  border-color: transparent;
+  border-radius: var(--radius-xs);
   line-height: 0;
 }
+.sticker-choice {
+  background: none;
+}
 .sticker-chip {
-  border-color: transparent;
-  background: var(--surface-2);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
 }
 .sticker-add {
   font-size: 0.85rem;
   padding: 6px 12px;
   min-height: 36px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
 }
 .sticker-add.open {
   background: var(--accent-faint);
@@ -849,7 +904,7 @@ body[data-paper="dotted"] .entry-text {
   gap: 8px;
   margin-top: 10px;
   padding: 10px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: var(--surface-2);
 }
 .sticker-group {
@@ -872,7 +927,7 @@ body[data-paper="dotted"] .entry-text {
 }
 .day-summary {
   text-align: center;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   font-size: 0.85rem;
   min-height: 1.3em;
 }
@@ -911,10 +966,11 @@ body[data-paper="dotted"] .entry-text {
   align-items: center;
   justify-content: center;
   border: 3px solid transparent;
-  box-shadow: 0 2px 6px var(--shadow);
   font-size: 1.6rem;
   color: var(--text-faint);
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 .avatar.active .avatar-ring {
   border-color: var(--list-color);
@@ -928,10 +984,6 @@ body[data-paper="dotted"] .entry-text {
   font-size: 27px;
   line-height: 34px;
 }
-body.dark .avatar-ring img.icon {
-  background: none;
-  padding: 0;
-}
 .avatar-count {
   position: absolute;
   left: -4px;
@@ -939,7 +991,7 @@ body.dark .avatar-ring img.icon {
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 11px;
+  border-radius: 999px;
   background: var(--text);
   color: var(--bg);
   font-size: 0.72rem;
@@ -977,7 +1029,7 @@ body.dark .avatar-ring img.icon {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-faintest);
+  color: var(--text-faint);
 }
 .journal-month:first-child {
   margin-top: 0;
@@ -988,10 +1040,10 @@ body.dark .avatar-ring img.icon {
   text-align: left;
   background: color-mix(in srgb, var(--mood) 12%, var(--surface));
   border: none;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   padding: 14px 16px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 8px var(--shadow);
+  box-shadow: var(--shadow-2);
   color: var(--text);
   --mood: var(--border);
 }
@@ -1010,7 +1062,7 @@ body.dark .avatar-ring img.icon {
   font-size: 0.85rem;
 }
 .journal-tasks {
-  color: var(--text-faintest);
+  color: var(--text-faint);
   font-size: 0.8rem;
   margin-left: auto;
   font-variant-numeric: tabular-nums;
@@ -1057,10 +1109,10 @@ body.dark .avatar-ring img.icon {
 }
 .filter-bar input,
 .filter-bar select {
-  min-height: 36px;
+  min-height: 40px;
   padding: 4px 10px;
   font-size: 0.875rem;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
 }
 .filter-bar input[type="search"] {
@@ -1100,23 +1152,23 @@ body.dark .avatar-ring img.icon {
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 12px;
-  box-shadow: 0 2px 10px var(--shadow);
+  box-shadow: var(--shadow-2);
 }
 .cal-head {
   text-align: center;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   padding-bottom: 4px;
 }
 .cal-cell {
   aspect-ratio: 1 / 1;
   min-height: 0;
   padding: 4px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
@@ -1168,10 +1220,6 @@ body.dark .avatar-ring img.icon {
   font-size: 14px;
   line-height: 18px;
 }
-body.dark img.cal-face {
-  padding: 1px;
-  border-radius: 4px;
-}
 .cal-bar {
   display: block;
   flex-shrink: 0;
@@ -1191,7 +1239,7 @@ body.dark img.cal-face {
   flex-wrap: wrap;
   margin-top: 10px;
   font-size: 0.8rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
 }
 .legend > span {
   display: inline-flex;
@@ -1211,22 +1259,24 @@ body.dark img.cal-face {
 }
 .tile {
   background: var(--surface);
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   padding: 14px 12px;
-  box-shadow: 0 2px 8px var(--shadow);
+  box-shadow: var(--shadow-2);
   text-align: center;
 }
+/* Streak tiles take the pack's accent, month tiles the "done" green, each
+   pair in a strong and a light tint, so the set follows the mascot. */
 .tile:nth-child(1) {
   background: color-mix(in srgb, var(--accent) 18%, var(--surface));
 }
 .tile:nth-child(2) {
-  background: color-mix(in srgb, #7a6bb5 18%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 .tile:nth-child(3) {
   background: color-mix(in srgb, var(--good) 18%, var(--surface));
 }
 .tile:nth-child(4) {
-  background: color-mix(in srgb, #3b7dd8 18%, var(--surface));
+  background: color-mix(in srgb, var(--good) 8%, var(--surface));
 }
 .tile-num {
   font-size: 1.8rem;
@@ -1237,7 +1287,7 @@ body.dark img.cal-face {
 }
 .tile-label {
   font-size: 0.75rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   margin-top: 4px;
 }
 .heatmap-wrap {
@@ -1251,7 +1301,7 @@ body.dark img.cal-face {
   display: grid;
   grid-template-rows: repeat(7, 1fr);
   font-size: 0.65rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   line-height: 1;
 }
 .heatmap-days span {
@@ -1268,7 +1318,7 @@ body.dark img.cal-face {
 .cell {
   width: 18px;
   height: 18px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: var(--surface-2);
   border: 1px solid var(--border-light);
 }
@@ -1298,7 +1348,7 @@ body.dark img.cal-face {
   display: flex;
   gap: 16px;
   font-size: 0.8rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
   margin-top: 8px;
   flex-wrap: wrap;
 }
@@ -1329,19 +1379,19 @@ body.dark img.cal-face {
   border-radius: 5px;
 }
 .mood-bar-n {
-  color: var(--text-faintest);
+  color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
 
 /* Dialogs */
 dialog {
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 20px;
   width: min(560px, calc(100vw - 32px));
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 8px 32px var(--shadow);
+  box-shadow: var(--shadow-3);
 }
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.5);
@@ -1404,7 +1454,7 @@ dialog h2 {
   min-width: 0;
   min-height: 38px;
   padding: 6px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
 }
 .checklist-row .item-done:checked + .item-text {
   text-decoration: line-through;
@@ -1415,6 +1465,7 @@ dialog h2 {
   min-height: 32px;
   padding: 0;
   border: none;
+  background: none;
   color: var(--text-faint);
   font-size: 1.1rem;
   flex-shrink: 0;
@@ -1430,14 +1481,14 @@ dialog h2 {
   overflow-y: auto;
   padding: 6px;
   border: 1px solid var(--border-light);
-  border-radius: 10px;
+  border-radius: var(--radius-xs);
   margin-bottom: 12px;
 }
 .icon-choice {
   min-height: 40px;
   padding: 0;
-  border-color: transparent;
-  border-radius: 8px;
+  background: none;
+  border-radius: var(--radius-xs);
   line-height: 0;
 }
 .icon-choice.picked {
@@ -1527,7 +1578,7 @@ footer {
   flex-wrap: wrap;
   gap: 8px;
   font-size: 0.8rem;
-  color: var(--text-faintest);
+  color: var(--text-faint);
 }
 footer a {
   color: var(--text-faint);
@@ -1548,16 +1599,52 @@ footer a {
     flex-wrap: nowrap;
     margin-bottom: 14px;
   }
-  /* The two dates share a row, each keeping its "from" or "to". */
+  /* Search takes the full width; the filters line up in equal columns
+     beneath it. Tasks has three selects, Journal a mood select over a
+     from/to pair. */
+  .filter-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  #task-filter {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .filter-bar input[type="search"],
+  #journal-filter select {
+    grid-column: 1 / -1;
+  }
+  .filter-bar select {
+    width: 100%;
+    max-width: none;
+  }
   .filter-date {
-    flex: 1 1 40%;
+    min-width: 0;
   }
   .filter-date input {
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
+    min-height: 40px;
     padding-left: 6px;
     padding-right: 6px;
+  }
+  /* Overdue and unscheduled rows drop "→ today" under the card instead of
+     squeezing the title beside it; 54px = checkbox width + gap. Only those
+     rows wrap, so a checkbox or drag handle never parts from its card. */
+  .task-row:has(.task-move) {
+    flex-wrap: wrap;
+  }
+  .task-row:has(.task-move) .task-main {
+    /* A zero basis so a long title can't push the card onto its own line;
+       the min-width fills the checkbox's line and pushes the button down. */
+    flex-basis: 0;
+    min-width: calc(100% - 54px);
+  }
+  .task-move {
+    flex: 0 0 auto;
+    margin-left: 54px;
+    align-self: flex-start;
   }
   .header h1 {
     font-size: 1.3rem;
@@ -1574,8 +1661,8 @@ footer a {
     height: 64px;
     padding: 6px;
     background: var(--surface);
-    border-radius: 24px;
-    box-shadow: 0 6px 24px var(--shadow);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-3);
     border: none;
   }
   .nav button {
@@ -1583,7 +1670,7 @@ footer a {
     min-height: 0;
     height: 100%;
     border: none;
-    border-radius: 18px;
+    border-radius: var(--radius-md);
     flex-direction: column;
     font-size: 0.7rem;
     padding: 0 2px;
@@ -1674,7 +1761,7 @@ footer a {
   }
   .cal-cell {
     padding: 3px;
-    border-radius: 7px;
+    border-radius: var(--radius-xs);
   }
   .cal-num {
     font-size: 0.78rem;
@@ -1691,7 +1778,7 @@ footer a {
     width: 100%;
     max-width: none;
     margin: auto 0 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
     padding: 20px 16px calc(16px + var(--safe-bottom));
     max-height: 90vh;
     overflow-y: auto;
