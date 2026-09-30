@@ -47,6 +47,18 @@ const STICKERS = {
   tape: "🩹", clip: "📎", pin: "📌", note: "🗒️", check: "✅", flower: "🌸",
 };
 
+// The picker shows the stickers in these groups, after the mascot's poses.
+const STICKER_GROUPS = [
+  { name: "weather", keys: ["sunny", "rainy", "snowy", "rainbow", "windy", "stormy"] },
+  { name: "food", keys: ["coffee", "tea", "pizza", "cake", "salad", "cookie"] },
+  { name: "moving", keys: ["run", "bike", "yoga", "swim", "walk", "nap"] },
+  { name: "fun", keys: ["book", "movie", "music", "game", "paint", "camera"] },
+  { name: "feelings", keys: ["love", "sparkle", "fire", "party", "star", "cry", "hug", "laugh", "think", "tired", "sick", "proud"] },
+  { name: "bits", keys: ["tape", "clip", "pin", "note", "check", "flower"] },
+];
+
+const PAPERS = ["plain", "lined", "dotted"];
+
 const MOODS = [
   { key: "awful", emoji: "😞", label: "awful", color: "#c43d2c" },
   { key: "meh", emoji: "😕", label: "meh", color: "#d9903a" },
@@ -143,7 +155,7 @@ function defaultState() {
     entries: {},
     fired: [],
     reminded: "",
-    settings: { theme: "system", journalReminder: "", weekStart: 1, pack: "owl" },
+    settings: { theme: "system", journalReminder: "", weekStart: 1, pack: "owl", paper: "plain" },
   };
 }
 
@@ -167,6 +179,7 @@ function sanitizeState(s, base) {
   s.settings.weekStart = s.settings.weekStart === 0 ? 0 : 1;
   if (typeof s.settings.journalReminder !== "string") s.settings.journalReminder = "";
   if (!PACKS[s.settings.pack]) s.settings.pack = "owl";
+  if (!PAPERS.includes(s.settings.paper)) s.settings.paper = "plain";
   s.lists = Array.isArray(s.lists) ? s.lists.filter(validList) : [];
   if (!s.lists.some((l) => l.id === INBOX_ID)) s.lists.unshift(base.lists[0]);
   s.tasks = Array.isArray(s.tasks) ? s.tasks.filter(validTask) : [];
@@ -811,6 +824,7 @@ const settingsDialog = document.getElementById("settings-dialog");
 function openSettings() {
   document.getElementById("set-theme").value = state.settings.theme;
   document.getElementById("set-pack").value = currentPack();
+  document.getElementById("set-paper").value = state.settings.paper;
   document.getElementById("set-week-start").value = String(state.settings.weekStart);
   document.getElementById("set-journal-reminder").value = state.settings.journalReminder;
   const n = state.tasks.length;
@@ -834,6 +848,11 @@ document.getElementById("set-pack").addEventListener("change", (e) => {
   saveState();
   applyTheme();
   render();
+});
+document.getElementById("set-paper").addEventListener("change", (e) => {
+  state.settings.paper = PAPERS.includes(e.target.value) ? e.target.value : "plain";
+  saveState();
+  applyTheme();
 });
 document.getElementById("set-week-start").addEventListener("change", (e) => {
   state.settings.weekStart = Number(e.target.value) === 0 ? 0 : 1;
@@ -992,9 +1011,14 @@ function renderToday() {
     .join("");
 
   const stickerRow = entry.stickers.map((k) => `<button class="sticker-chip" data-action="sticker" data-key="${esc(k)}" title="Remove">${stickerTag(k, "sticker")}</button>`).join("");
+  const groups = [{ name: PACKS[currentPack()].name.toLowerCase(), keys: packStickerKeys() }, ...STICKER_GROUPS];
   const stickerPicker = stickerPickerOpen
-    ? `<div class="sticker-grid">${[...packStickerKeys(), ...Object.keys(STICKERS)]
-        .map((k) => `<button class="sticker-choice${entry.stickers.includes(k) ? " picked" : ""}" data-action="sticker" data-key="${k}" title="${k}">${stickerTag(k, "sticker")}</button>`)
+    ? `<div class="sticker-grid">${groups
+        .map(
+          (g) => `<div class="sticker-group"><span class="sticker-group-name">${esc(g.name)}</span>${g.keys
+            .map((k) => `<button class="sticker-choice${entry.stickers.includes(k) ? " picked" : ""}" data-action="sticker" data-key="${k}" title="${k}">${stickerTag(k, "sticker")}</button>`)
+            .join("")}</div>`,
+        )
         .join("")}</div>`
     : "";
 
@@ -1952,6 +1976,7 @@ function applyTheme() {
   document.body.classList.toggle("dark", dark);
   document.getElementById("btn-dark-mode").textContent = dark ? "light" : "dark";
   document.body.dataset.pack = currentPack();
+  document.body.dataset.paper = state.settings.paper;
   document.getElementById("header-mascot").innerHTML = mascotTag("waving", "mascot header-mascot");
 }
 

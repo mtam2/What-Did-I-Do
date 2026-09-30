@@ -22,7 +22,7 @@ Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-
 
 **Unscheduled** -- tasks without a due date live in their list and in a fold at the bottom of today's list, where "→ today" pulls one onto the day.
 
-**Journal** -- pick one of five moods, write as much or as little as you like (it saves as you type), and add stickers. While the box is empty, three starters sit under it (reflection, gratitude, tomorrow); tap one to drop a few plain-text prompts in and edit them however you like. Clearing everything from a day removes the entry.
+**Journal** -- pick one of five moods, write as much or as little as you like (it saves as you type), and add stickers from the picker, where they're grouped by kind with the mascot's own poses first. While the box is empty, three starters sit under it (reflection, gratitude, tomorrow); tap one to drop a few plain-text prompts in and edit them however you like. Clearing everything from a day removes the entry.
 
 **Tasks** -- every list as a row of chips. Inbox is always there; "+ list" makes another with an icon and a color. Open tasks show first, completed ones fold away underneath. Drag to reorder (press and hold on a touch screen).
 
@@ -38,7 +38,7 @@ Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-
 
 **Mascot packs** -- settings lets you pick an owl, a duck, or a cat. The mascot sits next to the title, greets you on empty screens, and leads the sticker picker, and the accent color shifts to match: amber for the owl, sunny yellow for the duck, rose for the cat.
 
-**Settings** -- mascot pack, theme (light, dark, or follow the system), which day the week starts on, the journal reminder, how much storage you're using, and two cleanup actions: clear completed tasks older than 90 days, or delete everything.
+**Settings** -- mascot pack, theme (light, dark, or follow the system), journal paper (plain, lined, or dotted, drawn in the mascot's accent), which day the week starts on, the journal reminder, how much storage you're using, and two cleanup actions: clear completed tasks older than 90 days, or delete everything.
 
 **Export / import** -- click "export" in the header and the app shows your lists, tasks, and entries as a single line of text tagged `WDD1Z:` (or `WDD1:` when the browser can't compress). Copy it, then on the other machine click "import", paste it in, and click "import". Lists and tasks you already have are kept; for a day you both wrote on, the newer entry wins.
 
@@ -89,7 +89,7 @@ Settings has a "delete everything" button. Or clear your cookies and site data f
 No. Anyone who can open your browser can read your journal, the same as your browser history. If that matters, use a browser profile with its own login.
 
 **Can I add my own icons or stickers?**
-Yes. Add a key and an emoji fallback to the `ICONS` or `STICKERS` table at the top of `app.js`, and optionally drop a matching WebP in the folder.
+Yes. Add a key and an emoji fallback to the `ICONS` or `STICKERS` table at the top of `app.js` (and, for a sticker, its key to a group in `STICKER_GROUPS` so the picker shows it), and optionally drop a matching WebP in the folder.
 
 **What browsers are supported?**
 Any modern browser (Chrome, Firefox, Safari, Edge). No IE support.

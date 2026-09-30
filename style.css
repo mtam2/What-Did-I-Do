@@ -764,6 +764,7 @@ body.dark .task-tile img.icon {
   width: 100%;
   min-height: 96px;
   font-size: 1rem;
+  line-height: 26px;
   padding: 14px;
   border-radius: 18px;
   resize: none;
@@ -771,6 +772,23 @@ body.dark .task-tile img.icon {
   background: var(--surface-2);
   border-color: transparent;
   font-weight: 600;
+}
+/* Paper: drawn with gradients in the pack's accent so it follows the
+   mascot and both themes. The 26px rhythm matches the line height, offset
+   by the top padding so each rule sits under a line of writing. */
+.entry-text {
+  --paper-ink: color-mix(in srgb, var(--accent) 45%, transparent);
+  background-attachment: local;
+  background-position: 0 14px;
+}
+body[data-paper="lined"] .entry-text {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 25px, var(--paper-ink) 25px 26px);
+}
+body[data-paper="dotted"] .entry-text {
+  --paper-ink: color-mix(in srgb, var(--accent) 60%, transparent);
+  background-image: radial-gradient(circle, var(--paper-ink) 1.2px, transparent 1.6px);
+  background-size: 20px 26px;
+  background-position: 4px 1px;
 }
 .starter-row {
   display: flex;
@@ -827,12 +845,26 @@ body.dark .task-tile img.icon {
 }
 .sticker-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 10px;
   padding: 10px;
   border-radius: 18px;
   background: var(--surface-2);
+}
+.sticker-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.sticker-group-name {
+  flex-basis: 100%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
 }
 .sticker-choice.picked {
   background: var(--surface);
