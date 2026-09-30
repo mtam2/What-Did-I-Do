@@ -22,7 +22,7 @@ Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-
 
 **Unscheduled** -- tasks without a due date live in their list and in a fold at the bottom of today's list, where "→ today" pulls one onto the day.
 
-**Journal** -- pick one of five moods, write as much or as little as you like (it saves as you type), and add stickers. Clearing everything from a day removes the entry.
+**Journal** -- pick one of five moods, write as much or as little as you like (it saves as you type), and add stickers. While the box is empty, three starters sit under it (reflection, gratitude, tomorrow); tap one to drop a few plain-text prompts in and edit them however you like. Clearing everything from a day removes the entry.
 
 **Tasks** -- every list as a row of chips. Inbox is always there; "+ list" makes another with an icon and a color. Open tasks show first, completed ones fold away underneath. Drag to reorder (press and hold on a touch screen).
 

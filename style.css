@@ -772,6 +772,23 @@ body.dark .task-tile img.icon {
   border-color: transparent;
   font-weight: 600;
 }
+.starter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+.starter-chip {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  min-height: 32px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border-color: transparent;
+}
 .entry-status {
   margin-left: auto;
   color: var(--text-faint);

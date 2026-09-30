@@ -55,6 +55,14 @@ const MOODS = [
   { key: "great", emoji: "😄", label: "great", color: "#2e7d4f" },
 ];
 
+// Optional prompts for an empty journal entry. Plain text, fully editable,
+// and only ever offered while the entry has no writing.
+const STARTERS = {
+  reflection: { label: "reflection", text: "What went well:\n\nWhat was hard:\n\nOne thing I learned:\n" },
+  gratitude: { label: "gratitude", text: "Three things I'm grateful for today:\n1. \n2. \n3. \n" },
+  tomorrow: { label: "tomorrow", text: "Tomorrow I want to:\n\nOne thing to let go of:\n" },
+};
+
 // Mascot packs. Each pack has the same five poses in stickers/<pack>-<pose>
 // (256px) and images/<pack>-<pose> (512px), plus an accent palette applied
 // through body[data-pack] in style.css.
@@ -956,6 +964,7 @@ function renderToday() {
         ${MOODS.map((m, i) => `<button class="mood-btn${entry.mood === i ? " picked" : ""}" data-action="mood" data-idx="${i}" role="radio" aria-checked="${entry.mood === i}" title="${m.label}" style="--mood:${m.color}">${moodTag(i, "mood-face")}<span class="mood-label">${m.label}</span></button>`).join("")}
       </div>
       <textarea id="entry-text" class="entry-text" placeholder="${isToday ? "How did today go?" : "What happened that day?"}" rows="4">${esc(entry.text)}</textarea>
+      ${starterRow(entry)}
       <div class="sticker-row">
         ${stickerRow}
         <button class="sticker-add${stickerPickerOpen ? " open" : ""}" data-action="sticker-picker" aria-expanded="${stickerPickerOpen}" title="Add a sticker">${stickerPickerOpen ? "done" : "+ sticker"}</button>
@@ -969,6 +978,35 @@ function renderToday() {
   renderDaySummary(key);
   showEntryStatus();
   autoGrow(document.getElementById("entry-text"));
+}
+
+// The starters only show while there is nothing written, so they can never
+// replace anything. Typing doesn't re-render, so the row is always in the
+// markup and the input handler shows or hides it as the text changes.
+function starterRow(entry) {
+  const chips = Object.keys(STARTERS)
+    .map((k) => `<button class="starter-chip" data-action="starter" data-key="${k}">${esc(STARTERS[k].label)}</button>`)
+    .join("");
+  return `<div class="starter-row"${entry.text.trim() !== "" ? " hidden" : ""}><span class="starter-label">start with</span>${chips}</div>`;
+}
+
+function syncStarterRow(text) {
+  const row = document.querySelector("#view-today .starter-row");
+  if (row) row.hidden = text.trim() !== "";
+}
+
+function insertStarter(key, name) {
+  const s = STARTERS[name];
+  const e = entryFor(key);
+  if (!s || (e && e.text.trim() !== "")) return;
+  setEntryText(key, s.text);
+  render();
+  const ta = document.getElementById("entry-text");
+  if (!ta) return;
+  ta.focus();
+  // Land at the end of the line under the first prompt, ready to write.
+  const caret = s.text.indexOf("\n", s.text.indexOf("\n") + 1);
+  ta.setSelectionRange(caret, caret);
 }
 
 function renderDaySummary(key) {
@@ -1237,6 +1275,7 @@ mainEl.addEventListener("click", (e) => {
   else if (a === "open-day") openDay(btn.dataset.key);
   else if (a === "mood") setMood(viewDay, Number(btn.dataset.idx));
   else if (a === "sticker") toggleSticker(viewDay, btn.dataset.key);
+  else if (a === "starter") insertStarter(viewDay, btn.dataset.key);
   else if (a === "sticker-picker") {
     stickerPickerOpen = !stickerPickerOpen;
     render();
@@ -1284,6 +1323,7 @@ mainEl.addEventListener("input", (e) => {
   if (e.target.id === "entry-text") {
     setEntryText(viewDay, e.target.value);
     autoGrow(e.target);
+    syncStarterRow(e.target.value);
   }
 });
 
