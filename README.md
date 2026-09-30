@@ -26,7 +26,9 @@ Open `index.html` in any modern browser, or use the standalone `dist/what-did-i-
 
 **Tasks** -- every list as a row of chips. Inbox is always there; "+ list" makes another with an icon and a color. Open tasks show first, completed ones fold away underneath. Drag to reorder (press and hold on a touch screen).
 
-**Journal tab** -- every past entry, newest first, grouped by month. Tap one to open that day.
+**Journal tab** -- every past entry, newest first, grouped by month. Tap one to open that day. The bar at the top searches entry text and narrows by mood or a date range; the filters combine, and "clear filters" puts everything back.
+
+**Search** -- both the Tasks and Journal tabs have a bar at the top. Tasks searches titles and notes and filters by list, open or done, and scheduled, unscheduled, or overdue. While anything is set, the tab shows the matching tasks from every list in one place. Everything is searched in your browser.
 
 **Calendar** -- the month at a glance. A colored dot is the mood, a small dot means you wrote something, and the bar shows how many of that day's tasks got done. Tap a day to open it.
 

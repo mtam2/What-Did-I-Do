@@ -1015,6 +1015,53 @@ body.dark .avatar-ring img.icon {
   background: var(--text-faint);
 }
 
+/* Search and filters */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.filter-bar input,
+.filter-bar select {
+  min-height: 36px;
+  padding: 4px 10px;
+  font-size: 0.875rem;
+  border-radius: 12px;
+  background: var(--surface);
+}
+.filter-bar input[type="search"] {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.filter-bar select {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+.filter-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+.filter-date input {
+  width: auto;
+}
+.filter-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  margin: 0 4px 10px;
+}
+.filter-status button.link {
+  font-size: 0.85rem;
+}
+
 /* Calendar */
 .calendar {
   display: grid;
@@ -1405,6 +1452,17 @@ footer a {
   .header {
     flex-wrap: nowrap;
     margin-bottom: 14px;
+  }
+  /* The two dates share a row, each keeping its "from" or "to". */
+  .filter-date {
+    flex: 1 1 40%;
+  }
+  .filter-date input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding-left: 6px;
+    padding-right: 6px;
   }
   .header h1 {
     font-size: 1.3rem;

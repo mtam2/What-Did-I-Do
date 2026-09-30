@@ -1033,11 +1033,116 @@ function autoGrow(ta) {
   ta.style.height = `${Math.max(ta.scrollHeight, 96)}px`;
 }
 
+// Search and filters ----------------------------------------------------------
+//
+// Filters are view state, never saved. The bars live in index.html rather
+// than in the rendered markup so typing into them survives a render.
+
+const taskFilter = { q: "", list: "", status: "", sched: "" };
+const journalFilter = { q: "", mood: "", from: "", to: "" };
+
+function filterActive(f) {
+  return Object.values(f).some((v) => v !== "");
+}
+
+function clearFilter(f) {
+  for (const k of Object.keys(f)) f[k] = "";
+  syncFilterBars();
+}
+
+// Push the filter objects back into the bars (after "clear filters").
+function syncFilterBars() {
+  document.getElementById("tf-q").value = taskFilter.q;
+  document.getElementById("tf-list").value = taskFilter.list;
+  document.getElementById("tf-status").value = taskFilter.status;
+  document.getElementById("tf-sched").value = taskFilter.sched;
+  document.getElementById("jf-q").value = journalFilter.q;
+  document.getElementById("jf-mood").value = journalFilter.mood;
+  document.getElementById("jf-from").value = journalFilter.from;
+  document.getElementById("jf-to").value = journalFilter.to;
+}
+
+function textMatches(q, ...fields) {
+  const needle = q.trim().toLowerCase();
+  return !needle || fields.some((f) => f.toLowerCase().includes(needle));
+}
+
+function taskMatches(t, f, today) {
+  if (!textMatches(f.q, t.title, t.notes)) return false;
+  if (f.list && t.listId !== Number(f.list)) return false;
+  if (f.status === "open" && t.done) return false;
+  if (f.status === "done" && !t.done) return false;
+  if (f.sched === "scheduled" && !t.due) return false;
+  if (f.sched === "unscheduled" && t.due) return false;
+  if (f.sched === "overdue" && !(t.due && t.due < today && !t.done)) return false;
+  return true;
+}
+
+function entryMatches(key, e, f) {
+  if (!textMatches(f.q, e.text)) return false;
+  if (f.mood !== "" && e.mood !== Number(f.mood)) return false;
+  if (f.from && key < f.from) return false;
+  if (f.to && key > f.to) return false;
+  return true;
+}
+
+function filterStatus(what, parts) {
+  return `<div class="filter-status"><span>${esc([what, ...parts].join(" · "))}</span><button class="link" data-action="clear-filters">clear filters</button></div>`;
+}
+
+const bars = { task: document.getElementById("task-filter"), journal: document.getElementById("journal-filter") };
+
+bars.task.addEventListener("input", () => {
+  taskFilter.q = document.getElementById("tf-q").value;
+  taskFilter.list = document.getElementById("tf-list").value;
+  taskFilter.status = document.getElementById("tf-status").value;
+  taskFilter.sched = document.getElementById("tf-sched").value;
+  renderTasks();
+});
+bars.journal.addEventListener("input", () => {
+  journalFilter.q = document.getElementById("jf-q").value;
+  journalFilter.mood = document.getElementById("jf-mood").value;
+  journalFilter.from = document.getElementById("jf-from").value;
+  journalFilter.to = document.getElementById("jf-to").value;
+  renderJournal();
+});
+for (const bar of Object.values(bars)) bar.addEventListener("submit", (e) => e.preventDefault());
+
+document.getElementById("jf-mood").innerHTML =
+  `<option value="">any mood</option>` + MOODS.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("");
+
 // Tasks -----------------------------------------------------------------------
+
+function renderTaskResults() {
+  const today = todayKey();
+  const found = state.tasks
+    .filter((t) => taskMatches(t, taskFilter, today))
+    .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.due || "9").localeCompare(b.due || "9") || byOrder(a, b));
+  const parts = [];
+  if (taskFilter.q.trim()) parts.push(`“${taskFilter.q.trim()}”`);
+  if (taskFilter.list) parts.push(listById(Number(taskFilter.list)).name);
+  if (taskFilter.status) parts.push(taskFilter.status);
+  if (taskFilter.sched) parts.push(taskFilter.sched);
+  document.getElementById("tasks-body").innerHTML = `
+    ${filterStatus(`${found.length} of ${state.tasks.length} task${state.tasks.length === 1 ? "" : "s"}`, parts)}
+    <div class="block">
+      ${found.length ? `<ul class="task-list">${found.map((t) => taskRow(t, { showDue: true })).join("")}</ul>` : `<p class="hint">No tasks match.</p>`}
+    </div>
+  `;
+}
 
 function renderTasks() {
   if (!state.lists.some((l) => l.id === selectedList)) selectedList = INBOX_ID;
   const lists = sortedLists();
+  bars.task.hidden = !state.tasks.length;
+  const listSel = document.getElementById("tf-list");
+  listSel.innerHTML = `<option value="">all lists</option>` + lists.map((l) => `<option value="${l.id}">${esc(l.name)}</option>`).join("");
+  listSel.value = lists.some((l) => String(l.id) === taskFilter.list) ? taskFilter.list : "";
+  taskFilter.list = listSel.value;
+  if (state.tasks.length && filterActive(taskFilter)) {
+    renderTaskResults();
+    return;
+  }
   const chips = lists
     .map((l) => {
       const open = state.tasks.filter((t) => t.listId === l.id && !t.done).length;
@@ -1049,7 +1154,7 @@ function renderTasks() {
   const open = tasks.filter((t) => !t.done);
   const done = tasks.filter((t) => t.done).sort((a, b) => b.done - a.done);
 
-  document.getElementById("view-tasks").innerHTML = `
+  document.getElementById("tasks-body").innerHTML = `
     <div class="avatars">${chips}<button class="avatar avatar-new" data-action="new-list" title="New list"><span class="avatar-ring">+</span><span class="avatar-name">new list</span></button></div>
     <div class="block" style="--list-color:${sanitizeColor(l.color)}">
       <div class="block-head list-head">
@@ -1072,16 +1177,31 @@ function renderTasks() {
 // Journal ---------------------------------------------------------------------
 
 function renderJournal() {
-  const keys = Object.keys(state.entries)
+  const body = document.getElementById("journal-body");
+  const all = Object.keys(state.entries)
     .filter((k) => entryHasContent(state.entries[k]))
     .sort()
     .reverse();
-  if (!keys.length) {
-    document.getElementById("view-journal").innerHTML = `<div class="empty tall">${mascotTag("writing", "mascot")}<p>No entries yet. Pick a mood or write a line on the today tab and it shows up here.</p><button class="primary" data-action="jump-today">write today's entry</button></div>`;
+  bars.journal.hidden = !all.length;
+  if (!all.length) {
+    body.innerHTML = `<div class="empty tall">${mascotTag("writing", "mascot")}<p>No entries yet. Pick a mood or write a line on the today tab and it shows up here.</p><button class="primary" data-action="jump-today">write today's entry</button></div>`;
     return;
   }
+  const filtering = filterActive(journalFilter);
+  const keys = filtering ? all.filter((k) => entryMatches(k, state.entries[k], journalFilter)) : all;
   let lastMonth = "";
   const items = [];
+  if (filtering) {
+    const f = journalFilter;
+    const parts = [];
+    if (f.q.trim()) parts.push(`“${f.q.trim()}”`);
+    if (f.mood !== "") parts.push(`mood ${MOODS[Number(f.mood)].label}`);
+    if (f.from && f.to) parts.push(`${formatDay(f.from)} to ${formatDay(f.to)}`);
+    else if (f.from) parts.push(`from ${formatDay(f.from)}`);
+    else if (f.to) parts.push(`to ${formatDay(f.to)}`);
+    items.push(filterStatus(`${keys.length} of ${all.length} entr${all.length === 1 ? "y" : "ies"}`, parts));
+    if (!keys.length) items.push(`<p class="hint">No entries match.</p>`);
+  }
   for (const k of keys) {
     const e = state.entries[k];
     const month = formatMonth(parseDay(k));
@@ -1104,7 +1224,7 @@ function renderJournal() {
       ${e.stickers.length ? `<div class="journal-stickers">${e.stickers.map((s) => stickerTag(s, "sticker small")).join("")}</div>` : ""}
     </button>`);
   }
-  document.getElementById("view-journal").innerHTML = `<div class="journal-list">${items.join("")}</div>`;
+  body.innerHTML = `<div class="journal-list">${items.join("")}</div>`;
 }
 
 // Calendar --------------------------------------------------------------------
@@ -1276,6 +1396,10 @@ mainEl.addEventListener("click", (e) => {
   else if (a === "mood") setMood(viewDay, Number(btn.dataset.idx));
   else if (a === "sticker") toggleSticker(viewDay, btn.dataset.key);
   else if (a === "starter") insertStarter(viewDay, btn.dataset.key);
+  else if (a === "clear-filters") {
+    clearFilter(view === "tasks" ? taskFilter : journalFilter);
+    render();
+  }
   else if (a === "sticker-picker") {
     stickerPickerOpen = !stickerPickerOpen;
     render();

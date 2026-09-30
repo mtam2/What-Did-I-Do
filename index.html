@@ -54,8 +54,33 @@
 
     <main>
       <section id="view-today" class="view"></section>
-      <section id="view-tasks" class="view" hidden></section>
-      <section id="view-journal" class="view" hidden></section>
+      <section id="view-tasks" class="view" hidden>
+        <form class="filter-bar" id="task-filter" role="search" aria-label="Search tasks" hidden>
+          <input type="search" id="tf-q" placeholder="Search tasks…" autocomplete="off" />
+          <select id="tf-list" aria-label="List"><option value="">all lists</option></select>
+          <select id="tf-status" aria-label="Status">
+            <option value="">open and done</option>
+            <option value="open">open</option>
+            <option value="done">done</option>
+          </select>
+          <select id="tf-sched" aria-label="Scheduling">
+            <option value="">any date</option>
+            <option value="scheduled">scheduled</option>
+            <option value="unscheduled">unscheduled</option>
+            <option value="overdue">overdue</option>
+          </select>
+        </form>
+        <div id="tasks-body"></div>
+      </section>
+      <section id="view-journal" class="view" hidden>
+        <form class="filter-bar" id="journal-filter" role="search" aria-label="Search journal" hidden>
+          <input type="search" id="jf-q" placeholder="Search entries…" autocomplete="off" />
+          <select id="jf-mood" aria-label="Mood"><option value="">any mood</option></select>
+          <label class="filter-date"><span>from</span><input type="date" id="jf-from" aria-label="From date" /></label>
+          <label class="filter-date"><span>to</span><input type="date" id="jf-to" aria-label="To date" /></label>
+        </form>
+        <div id="journal-body"></div>
+      </section>
       <section id="view-calendar" class="view" hidden></section>
       <section id="view-stats" class="view" hidden></section>
     </main>
