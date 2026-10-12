@@ -1123,9 +1123,40 @@ function renderDaySummary(key) {
 
 function autoGrow(ta) {
   if (!ta) return;
+  const focused = document.activeElement === ta;
+  const viewport = window.visualViewport;
+  // Mobile keyboards shrink the visual viewport, not necessarily innerHeight.
+  // Keep the editor short enough for native textarea caret scrolling to work.
+  const limit = focused ? Math.max(96, (viewport ? viewport.height : window.innerHeight) * 0.6) : Infinity;
+  const scrollTop = ta.scrollTop;
   ta.style.height = "auto";
-  ta.style.height = `${Math.max(ta.scrollHeight, 96)}px`;
+  ta.style.height = `${Math.min(Math.max(ta.scrollHeight + 2, 96), limit)}px`;
+  ta.scrollTop = scrollTop;
+  if (focused) {
+    const rect = ta.getBoundingClientRect();
+    const top = (viewport ? viewport.offsetTop : 0) + 12;
+    const bottom = (viewport ? viewport.offsetTop + viewport.height : window.innerHeight) - 12;
+    if (rect.bottom > bottom) window.scrollBy(0, rect.bottom - bottom);
+    else if (rect.top < top) window.scrollBy(0, rect.top - top);
+  }
 }
+
+// Delegation survives day navigation, which replaces the journal element.
+document.addEventListener("focusin", (e) => {
+  if (e.target.id === "entry-text") autoGrow(e.target);
+});
+document.addEventListener("focusout", (e) => {
+  if (e.target.id === "entry-text") {
+    requestAnimationFrame(() => {
+      if (e.target.isConnected) autoGrow(e.target);
+    });
+  }
+});
+function resizeJournal() {
+  autoGrow(document.getElementById("entry-text"));
+}
+window.addEventListener("resize", resizeJournal);
+if (window.visualViewport) window.visualViewport.addEventListener("resize", resizeJournal);
 
 // Search and filters ----------------------------------------------------------
 //

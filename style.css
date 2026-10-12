@@ -819,7 +819,7 @@ body.dark .mood-btn .mood-face.art-emoji {
   padding: 15px;
   border-radius: var(--radius-md);
   resize: none;
-  overflow: hidden;
+  overflow-y: auto;
   background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
   border: 1px solid var(--border-light);
   font-weight: 400;
